@@ -1,24 +1,17 @@
-package dropped.task;
+package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFinder {
+public abstract class AbstractPropertyFinder {
 
-    private String searchCriteria = "ПРО АВТОР";
-
-    @Override
-    public List<String> findProperty(Document document) {
-        List<String> parsedStrings = getParsedStrings(document, "p > strong");
-        int start = findStart(parsedStrings, searchCriteria);
-        int finish = findFinish(parsedStrings, start);
-        return getProperties(parsedStrings, start, finish);
-    }
-
-   /* private static List<String> getParsedStrings(Document document) {
+    protected List<String> getParsedStrings(Document document, String queryCriteria) {
         Element annotationElement = document.getElementById("annotation");
-        Elements selectedElements = annotationElement.select("p > strong");
+        Elements selectedElements = annotationElement.select(queryCriteria);
 
         List<String> result = new ArrayList<>();
         for (Element element : selectedElements) {
@@ -27,7 +20,7 @@ public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFin
         return result;
     }
 
-    private static List<String> getAuthors(List<String> strings, int start, int finish) {
+    protected  List<String> getProperties(List<String> strings, int start, int finish) {
         List<String> result = new ArrayList<>();
         for (int i = start; i <= finish; i++) {
             result.add(strings.get(i));
@@ -35,10 +28,11 @@ public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFin
         return result;
     }
 
-    private static int findStart(List<String> strings, String searchCriteria) {
+    protected int findStart(List<String> strings, String searchCriteria) {
         int start = 0;
         for (int i = 0; i < strings.size(); i++) {
             String s = strings.get(i);
+            //FIX ME
             if (s.isEmpty() || s.length() < searchCriteria.length()) {
                 s += "         ";
             }
@@ -49,7 +43,7 @@ public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFin
         return start;
     }
 
-    private static int findFinish(List<String> strings, int start) {
+    protected int findFinish(List<String> strings, int start) {
         int finish = 0;
         for (int i = start; i < strings.size(); i++) {
             if (containsUppercase(strings.get(i))) {
@@ -60,7 +54,10 @@ public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFin
         return finish;
     }
 
-    private static boolean containsUppercase(String str) {
+    private boolean containsUppercase(String str) {
+        if (str.charAt(0) == '«') {
+            str = str.replace(str.charAt(1), Character.toLowerCase(str.charAt(1)));
+        }
         return Character.isUpperCase(str.charAt(1));
-    }*/
+    }
 }

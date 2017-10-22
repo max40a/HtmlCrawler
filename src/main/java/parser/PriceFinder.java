@@ -1,4 +1,4 @@
-package dropped.task;
+package parser;
 
 import org.jsoup.nodes.Document;
 

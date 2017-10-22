@@ -1,4 +1,4 @@
-package dropped.task;
+package parser;
 
 import org.jsoup.nodes.Document;
 
@@ -19,6 +19,4 @@ public class TitleFinder implements PropertyFinder{
         int finish = s.indexOf("»");
         return s.substring(start, finish).trim() + ".";
     }
-
-
 }
