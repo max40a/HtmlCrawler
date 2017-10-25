@@ -2,14 +2,14 @@ package parser;
 
 import org.jsoup.nodes.Document;
 
-import java.util.List;
+import java.util.Optional;
 
-public class YearOfPublishingFinder implements PropertyFinder {
+public class YearOfPublishingFinder implements PropertyFinder<String> {
 
     private String attr = "Рік видання";
 
     @Override
-    public List<String> findProperty(Document document) {
-        return BookFeatureExtractor.findAttrInDocument(document, attr);
+    public Optional<String> findProperty(Document document) {
+        return Optional.of(BookFeatureExtractor.findAttrInDocument(document, attr));
     }
 }

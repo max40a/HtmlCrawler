@@ -8,7 +8,7 @@ import java.util.*;
 
 public class BookFeatureExtractor {
 
-    public static List<String> findAttrInDocument(Document document, String wantedAttr) {
+    public static String findAttrInDocument(Document document, String wantedAttr) {
         Element features = document.getElementById("features");
 
         Elements keys = features.select("td.attr");
@@ -20,6 +20,6 @@ public class BookFeatureExtractor {
         while (keyIterator.hasNext() && valueIterator.hasNext()) {
             attrs.put(keyIterator.next().text(), valueIterator.next().text());
         }
-        return Collections.singletonList(attrs.get(wantedAttr));
+        return attrs.get(wantedAttr);
     }
 }

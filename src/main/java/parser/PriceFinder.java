@@ -1,15 +1,16 @@
 package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
-public class PriceFinder implements PropertyFinder {
+public class PriceFinder implements PropertyFinder<String> {
 
     @Override
-    public List<String> findProperty(Document document) {
-        String price = document.select("div > span.fn-price").first().text();
-        return Collections.singletonList(price);
+    public Optional<String> findProperty(Document document) {
+        Elements select = document.select("div > span.fn-price");
+        if (select.isEmpty()) return Optional.empty();
+        return Optional.ofNullable(select.first().text());
     }
 }

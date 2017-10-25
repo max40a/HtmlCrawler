@@ -5,11 +5,12 @@ import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class CategoriesFinder implements PropertyFinder{
+public class CategoriesFinder implements PropertyFinder<List<String>>{
 
     @Override
-    public List<String> findProperty(Document document) {
+    public Optional<List<String>> findProperty(Document document) {
         List<String> categories = new ArrayList<>();
 
         Elements elementsByClass = document.getElementsByClass("breadcrumb");
@@ -17,6 +18,9 @@ public class CategoriesFinder implements PropertyFinder{
         for (int i = 1; i < resultOfSelect.size(); i++) {
             categories.add(resultOfSelect.get(i).text());
         }
-        return categories;
+        if(categories.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(categories);
     }
 }

@@ -2,16 +2,18 @@ package parser;
 
 import org.jsoup.nodes.Document;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
-public class TitleFinder implements PropertyFinder{
+public class TitleFinder implements PropertyFinder<String>{
 
     @Override
-    public List<String> findProperty(Document document) {
+    public Optional<String> findProperty(Document document) {
         String select = document.select("span[data-product]").first().text();
+        if(select.isEmpty()) {
+            return Optional.empty();
+        }
         String title = getTitle(select);
-        return Collections.singletonList(title);
+        return Optional.of(title);
     }
 
     private static String getTitle(String s) {

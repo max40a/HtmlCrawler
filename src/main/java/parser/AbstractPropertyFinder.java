@@ -5,6 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractPropertyFinder {
@@ -20,7 +21,11 @@ public abstract class AbstractPropertyFinder {
         return result;
     }
 
+    //TODO fixme
     protected  List<String> getProperties(List<String> strings, int start, int finish) {
+        if(strings.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<String> result = new ArrayList<>();
         for (int i = start; i <= finish; i++) {
             result.add(strings.get(i));
@@ -29,18 +34,17 @@ public abstract class AbstractPropertyFinder {
     }
 
     protected int findStart(List<String> strings, String searchCriteria) {
-        int start = 0;
         for (int i = 0; i < strings.size(); i++) {
             String s = strings.get(i);
-            //FIX ME
+            //TODO fixme
             if (s.isEmpty() || s.length() < searchCriteria.length()) {
                 s += "         ";
             }
             if (s.substring(0, searchCriteria.length()).compareToIgnoreCase(searchCriteria) == 0) {
-                start = i + 1;
+                return i + 1;
             }
         }
-        return start;
+        return 0;
     }
 
     protected int findFinish(List<String> strings, int start) {

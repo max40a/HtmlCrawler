@@ -4,17 +4,21 @@ import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class IsbnFinder implements PropertyFinder {
+public class IsbnFinder implements PropertyFinder<List<String>> {
 
     private String[] foundProperties = {"ISBN", "Мова"};
 
     @Override
-    public List<String> findProperty(Document document) {
+    public Optional<List<String>> findProperty(Document document) {
         List<String> foundedProperties = new ArrayList<>();
         for (String prop : foundProperties) {
-            foundedProperties.add(BookFeatureExtractor.findAttrInDocument(document, prop).get(0));
+            foundedProperties.add(BookFeatureExtractor.findAttrInDocument(document, prop));
         }
-        return foundedProperties;
+        if (foundedProperties.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(foundedProperties);
     }
 }

@@ -2,17 +2,23 @@ package parser;
 
 import org.jsoup.nodes.Document;
 
-import java.util.List;
+import java.util.*;
 
-public class DescriptionFinder extends AbstractPropertyFinder implements PropertyFinder {
+public class DescriptionFinder extends AbstractPropertyFinder implements PropertyFinder<String> {
 
     private String searchCriteria = "ПРО КНИЖКУ";
 
     @Override
-    public List<String> findProperty(Document document) {
+    public Optional<String> findProperty(Document document) {
         List<String> parsedStrings = getParsedStrings(document, "p");
         int start = findStart(parsedStrings, searchCriteria);
         int finish = findFinish(parsedStrings, start);
-        return getProperties(parsedStrings, start, finish);
+        //TODO fixme
+        List<String> properties = getProperties(parsedStrings, start, finish);
+        String description = properties.get(0);
+        if(description.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(description);
     }
 }
