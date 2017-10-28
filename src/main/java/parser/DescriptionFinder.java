@@ -1,24 +1,20 @@
 package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
-import java.util.*;
+import java.util.Optional;
 
-public class DescriptionFinder extends AbstractPropertyFinder implements PropertyFinder<String> {
+public class DescriptionFinder implements PropertyFinder<String> {
 
-    private String searchCriteria = "ПРО КНИЖКУ";
+    private String cssQuery = "p > strong:matchesOwn(^ПРО КНИЖКУ$)";
 
     @Override
     public Optional<String> findProperty(Document document) {
-        List<String> parsedStrings = getParsedStrings(document, "p");
-        int start = findStart(parsedStrings, searchCriteria);
-        int finish = findFinish(parsedStrings, start);
-        //TODO fixme
-        List<String> properties = getProperties(parsedStrings, start, finish);
-        String description = properties.get(0);
-        if(description.isEmpty()) {
+        Element description = document.select(cssQuery).parents().next().first();
+        if(!description.hasText()) {
             return Optional.empty();
         }
-        return Optional.of(description);
+        return Optional.of(description.text());
     }
 }
