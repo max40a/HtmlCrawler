@@ -6,10 +6,11 @@ import java.util.Optional;
 
 public class NumberOfPagesFinder implements PropertyFinder<String> {
 
-    private String attr = "Кількість сторінок";
+    private String cssQuery = "div#features td.attr:contains(Кількість сторінок)";
 
     @Override
     public Optional<String> findProperty(Document document) {
-        return Optional.of(BookFeatureExtractor.findAttrInDocument(document, attr));
+        String numbersOfPage = document.select(cssQuery).next().text();
+        return (numbersOfPage.isEmpty()) ? Optional.empty() : Optional.of(numbersOfPage);
     }
 }
