@@ -7,9 +7,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class NumberOfPagesFinderTest {
+public class PublishingFinderTest {
 
-    private String searchNumberOfPages = "100";
+    private String searchPublishingString = "TEST STRING";
     private PropertyFinder<String> testableObject;
     private Document doc;
 
@@ -19,19 +19,19 @@ public class NumberOfPagesFinderTest {
         testableHtml.append("<div id=features>");
         testableHtml.append("<table>");
         testableHtml.append("<tr class=params>");
-        testableHtml.append("<td class=attr>Кількість сторінок</td>");
+        testableHtml.append("<td class=attr>Видавництво</td>");
         testableHtml.append("<td class=value itemprop=identifier>");
-        testableHtml.append(searchNumberOfPages);
+        testableHtml.append(searchPublishingString);
         testableHtml.append("</td>");
         testableHtml.append("</tr>");
         testableHtml.append("</table>");
 
-        testableObject = new NumberOfPagesFinder();
+        testableObject = new PublishingFinder();
         doc = Jsoup.parse(testableHtml.toString(), "UTF-8");
     }
 
     @Test
-    public void test_find_number_of_pages_method() {
-        assertEquals(searchNumberOfPages, testableObject.findProperty(doc).get());
+    public void test_find_publishing_method() {
+        assertEquals(searchPublishingString, testableObject.findProperty(doc).get());
     }
 }

@@ -6,10 +6,11 @@ import java.util.Optional;
 
 public class PublishingFinder implements PropertyFinder<String> {
 
-    private String attr = "Видавництво";
+    private String cssQuery = "div#features td.attr:contains(Видавництво)";
 
     @Override
     public Optional<String> findProperty(Document document) {
-        return Optional.of(BookFeatureExtractor.findAttrInDocument(document, attr));
+        String publishing = document.select(cssQuery).next().text();
+        return (publishing.isEmpty()) ? Optional.empty() : Optional.of(publishing);
     }
 }
