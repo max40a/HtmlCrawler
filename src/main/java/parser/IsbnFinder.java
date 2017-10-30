@@ -1,24 +1,46 @@
 package parser;
 
+import entity.Isbn;
 import org.jsoup.nodes.Document;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-public class IsbnFinder implements PropertyFinder<List<String>> {
+public class IsbnFinder implements PropertyFinder<Isbn> {
 
-    private String[] foundProperties = {"ISBN", "Мова"};
+    private String cssQueryByGetLanguage = "div#features td.attr:contains(Мова)";
+    private String cssQueryByGetNumberOfIsbn = "div#features td.attr:contains(ISBN)";
 
     @Override
-    public Optional<List<String>> findProperty(Document document) {
-        List<String> foundedProperties = new ArrayList<>();
-        for (String prop : foundProperties) {
-            foundedProperties.add(BookFeatureExtractor.findAttrInDocument(document, prop));
+    public Optional<Isbn> findProperty(Document document) {
+        String language = document.select(cssQueryByGetLanguage).next().text();
+        String isbnNumber = document.select(cssQueryByGetNumberOfIsbn).next().text();
+        return Optional.of(toIsbn(isbnNumber, language));
+    }
+
+    private Isbn toIsbn(String number, String language) {
+        String formattedIsbnNumber = isbnNumberFormatter(number);
+        return Isbn.builder()
+                .language(languageDetect(language))
+                .number(formattedIsbnNumber)
+                .type(String.valueOf(formattedIsbnNumber.length()))
+                .translation(true)
+                .build();
+    }
+
+    //TODO fixme
+    private String languageDetect(String language) {
+        switch (language) {
+            case "Українська":
+                return "UA";
+            case "Російська":
+                return "RU";
+            case "Англійська":
+                return "EN";
         }
-        if (foundedProperties.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(foundedProperties);
+        return "NOT DETECTED LANGUAGE";
+    }
+
+    private String isbnNumberFormatter(String inputIsbn) {
+        return String.join("", inputIsbn.split("-"));
     }
 }
