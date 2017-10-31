@@ -1,24 +1,28 @@
 package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class AuthorsFinder extends AbstractPropertyFinder implements PropertyFinder<List<String>> {
+public class AuthorsFinder implements PropertyFinder<List<String>> {
 
-    private String searchCriteria = "ПРО АВТОР";
+    private String selectStr = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|ІВ))";
 
     @Override
     public Optional<List<String>> findProperty(Document document) {
-        List<String> parsedStrings = getParsedStrings(document, "p > strong");
-        int start = findStart(parsedStrings, searchCriteria);
-        int finish = findFinish(parsedStrings, start);
-        //TODO fixme
-        List<String> authors = getProperties(parsedStrings, start, finish);
-        if (authors.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(authors);
+        Elements searchElements = document.select(selectStr).parents().next();
+        List<String> authors = new ArrayList<>();
+        authorSearch(searchElements, authors);
+        return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
+    }
+
+    private void authorSearch(Elements elements, List<String> list) {
+        String stopSearchCriteriaRegExp = "^[А-ЯЁЇІЄҐ]{2}.*";
+        if (elements.text().matches(stopSearchCriteriaRegExp)) return;
+        list.add(elements.select("p > strong").text());
+        authorSearch(elements.next(), list);
     }
 }
