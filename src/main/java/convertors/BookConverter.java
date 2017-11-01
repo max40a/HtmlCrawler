@@ -4,6 +4,7 @@ import entity.Book;
 import entity.Isbn;
 import org.jsoup.nodes.Document;
 import parser.PropertyFinder;
+import parser.PropertyNotFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ public class BookConverter {
 
     //TODO fixme
     @SuppressWarnings("unchecked")
-    public Book toBook(Document document) {
+    public Book toBook(Document document) throws PropertyNotFoundException {
         return Book
                 .builder()
                 .title((String) this.mapOfSearchEngines.get("title").findProperty(document).get())

@@ -31,7 +31,7 @@ public class PublishingFinderTest {
     }
 
     @Test
-    public void test_find_publishing_method() {
+    public void test_find_publishing_method() throws PropertyNotFoundException {
         assertEquals(searchPublishingString, testableObject.findProperty(doc).get());
     }
 }

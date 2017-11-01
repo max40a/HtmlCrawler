@@ -50,7 +50,7 @@ public class CategoriesFinderTest {
     }
 
     @Test
-    public void test_find_categories_method() {
+    public void test_find_categories_method() throws PropertyNotFoundException {
         List<String> expectedList = Arrays.asList(firstSearchCategory, secondSearchCategory);
         List<String> actualList = testableObject.findProperty(doc).get();
         assertThat(expectedList, is(actualList));
@@ -58,13 +58,13 @@ public class CategoriesFinderTest {
     }
 
     @Test
-    public void test_that_find_categories_method_not_return_empty_list_when_really_expected_list_with_content() {
+    public void test_that_find_categories_method_not_return_empty_list_when_really_expected_list_with_content() throws PropertyNotFoundException {
         List<String> actualList = testableObject.findProperty(doc).get();
         assertThat(actualList, not(IsEmptyCollection.empty()));
     }
 
     @Test
-    public void test_find_categories_method_returned_reallyExpected_content() {
+    public void test_find_categories_method_returned_reallyExpected_content() throws PropertyNotFoundException {
         List<String> actualList = testableObject.findProperty(doc).get();
         assertThat(actualList, hasItems(firstSearchCategory, secondSearchCategory));
     }

@@ -33,9 +33,13 @@ public class Main {
         try (BufferedReader reader = new BufferedReader(new FileReader(links))) {
             String path;
             while ((path = reader.readLine()) != null) {
-                Document document = Jsoup.parse(new File(path), "UTF-8");
-                Book book = converter.toBook(document);
-                System.out.println(book);
+                try {
+                    Document document = Jsoup.parse(new File(path), "UTF-8");
+                    Book book = converter.toBook(document);
+                    System.out.println(book);
+                } catch (PropertyNotFoundException e) {
+                    System.out.println(e.getMessage());
+                }
             }
         }
     }

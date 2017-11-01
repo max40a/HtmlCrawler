@@ -11,10 +11,15 @@ public class IsbnFinder implements PropertyFinder<Isbn> {
     private String cssQueryByGetNumberOfIsbn = "div#features td.attr:contains(ISBN)";
 
     @Override
-    public Optional<Isbn> findProperty(Document document) {
-        String language = document.select(cssQueryByGetLanguage).next().text();
-        String isbnNumber = document.select(cssQueryByGetNumberOfIsbn).next().text();
-        return Optional.of(toIsbn(isbnNumber, language));
+    public Optional<Isbn> findProperty(Document document) throws PropertyNotFoundException {
+        try {
+            String language = document.select(cssQueryByGetLanguage).next().text();
+            String isbnNumber = document.select(cssQueryByGetNumberOfIsbn).next().text();
+            return Optional.of(toIsbn(isbnNumber, language));
+        } catch (Exception e) {
+            String message = String.format("\"ISBN\" Not Found for URL: %s, cause: %s", document.location(), e.toString());
+            throw new PropertyNotFoundException(message, e);
+        }
     }
 
     private Isbn toIsbn(String number, String language) {
