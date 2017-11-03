@@ -22,7 +22,7 @@ public class Main {
         searchEngines.put("publishing", new PublishingFinder());
         searchEngines.put("yearOfPublishing", new YearOfPublishingFinder());
         searchEngines.put("numberOfPages", new NumberOfPagesFinder());
-        searchEngines.put("ISBN", new IsbnFinder());
+        searchEngines.put("Isbn", new IsbnFinder());
         searchEngines.put("categories", new CategoriesFinder());
         searchEngines.put("description", new DescriptionFinder());
         searchEngines.put("price", new PriceFinder());
@@ -34,7 +34,7 @@ public class Main {
             String path;
             while ((path = reader.readLine()) != null) {
                 Document document = Jsoup.parse(new File(path), "UTF-8");
-                Book book = converter.toBook(document);
+                Book book = converter.toBook(document.html());
                 System.out.println(book);
             }
         }
