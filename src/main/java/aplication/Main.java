@@ -2,6 +2,8 @@ package aplication;
 
 import convertors.BookConverter;
 import entity.Book;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import parser.*;
@@ -14,7 +16,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Main {
+
+    private static final Logger log = Logger.getLogger(Main.class);
+
     public static void main(String[] args) throws IOException {
+        PropertyConfigurator.configure("C:\\Users\\Retro\\IdeaProjects\\HtmlCrawler\\src\\main\\resources\\log\\log4j.properties");
+
         //TODO fixme
         Map<String, PropertyFinder> searchEngines = new LinkedHashMap<>();
         searchEngines.put("title", new TitleFinder());
@@ -39,6 +46,7 @@ public class Main {
                     System.out.println(book);
                 } catch (PropertyNotFoundException e) {
                     System.out.println(e.getMessage());
+                    log.info(e.getMessage());
                 }
             }
         }
