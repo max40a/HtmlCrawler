@@ -17,14 +17,22 @@ public class AuthorsFinder implements PropertyFinder<List<String>> {
 
     @Override
     public Optional<List<String>> findProperty(Document document) {
-        Elements select = document.select(selectStr);
-        if (select.isEmpty()) return Optional.empty();
-        Elements searchElements = select.parents().next();
-        if (searchElements.isEmpty()) return Optional.empty();
+        try {
+            Elements select = document.select(selectStr);
+            if (select.isEmpty()) return Optional.empty();
+            Elements searchElements = select.parents().next();
+            if (searchElements.isEmpty()) return Optional.empty();
 
-        List<String> authors = new ArrayList<>();
-        authorSearch(searchElements, authors, 0);
-        return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
+            List<String> authors = new ArrayList<>();
+            authorSearch(searchElements, authors, 0);
+            return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
+        } catch (Exception e) {
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
+            throw new PropertyNotFoundException(message, e);
+        }
     }
 
     private void authorSearch(Elements elements, List<String> list, int depth) {

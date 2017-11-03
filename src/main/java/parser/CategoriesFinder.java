@@ -11,12 +11,17 @@ public class CategoriesFinder implements PropertyFinder<List<String>> {
 
     @Override
     public Optional<List<String>> findProperty(Document document) {
-        return Optional.of(document
-                .getElementsByClass("breadcrumb")
-                .select("span[itemprop='title']")
-                .stream()
-                .skip(1)
-                .map(Element::text)
-                .collect(Collectors.toList()));
+        try {
+            return Optional.of(document
+                    .getElementsByClass("breadcrumb")
+                    .select("span[itemprop='title']")
+                    .stream()
+                    .skip(1)
+                    .map(Element::text)
+                    .collect(Collectors.toList()));
+        } catch (Exception e) {
+            String message = String.format("\"CATEGORIES\" Not Found for URL: %s, cause: %s", document.location(), e.toString());
+            throw new PropertyNotFoundException(message, e);
+        }
     }
 }

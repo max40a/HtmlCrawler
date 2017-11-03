@@ -11,7 +11,15 @@ public class PublishingFinder implements PropertyFinder<String> {
 
     @Override
     public Optional<String> findProperty(Document document) {
-        Elements select = document.select(cssQuery);
-        return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
+        try {
+            Elements select = document.select(cssQuery);
+            return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
+        } catch (Exception e) {
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
+            throw new PropertyNotFoundException(message, e);
+        }
     }
 }

@@ -13,17 +13,25 @@ public class IsbnFinder implements PropertyFinder<Isbn> {
 
     @Override
     public Optional<Isbn> findProperty(Document document) {
-        Elements selectOfLanguage = document.select(cssQueryByGetLanguage);
-        Elements selectOfNumberIsbn = document.select(cssQueryByGetNumberOfIsbn);
-        if (selectOfLanguage.isEmpty() || selectOfNumberIsbn.isEmpty()) return Optional.empty();
+        try {
+            Elements selectOfLanguage = document.select(cssQueryByGetLanguage);
+            Elements selectOfNumberIsbn = document.select(cssQueryByGetNumberOfIsbn);
+            if (selectOfLanguage.isEmpty() || selectOfNumberIsbn.isEmpty()) return Optional.empty();
 
-        Elements nextOfNumberIsbn = selectOfNumberIsbn.next();
-        Elements nextOfLanguage = selectOfLanguage.next();
-        if (nextOfLanguage.isEmpty() || nextOfNumberIsbn.isEmpty()) return Optional.empty();
+            Elements nextOfNumberIsbn = selectOfNumberIsbn.next();
+            Elements nextOfLanguage = selectOfLanguage.next();
+            if (nextOfLanguage.isEmpty() || nextOfNumberIsbn.isEmpty()) return Optional.empty();
 
-        String language = nextOfLanguage.text();
-        String isbnNumber = nextOfNumberIsbn.text();
-        return Optional.of(toIsbn(isbnNumber, language));
+            String language = nextOfLanguage.text();
+            String isbnNumber = nextOfNumberIsbn.text();
+            return Optional.of(toIsbn(isbnNumber, language));
+        } catch (Exception e) {
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
+            throw new PropertyNotFoundException(message, e);
+        }
     }
 
     private Isbn toIsbn(String number, String language) {
