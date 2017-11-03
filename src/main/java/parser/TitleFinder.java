@@ -7,12 +7,15 @@ import java.util.Optional;
 public class TitleFinder implements PropertyFinder<String> {
 
     @Override
-    public Optional<String> findProperty(Document document) throws PropertyNotFoundException {
+    public Optional<String> findProperty(Document document) {
         try {
             String select = document.select("span[data-product]").first().text();
             return (select.isEmpty()) ? Optional.empty() : Optional.of(getTitle(select));
         } catch (Exception e) {
-            String message = String.format("\"TITLE\" Not Found for URL: %s, cause: %s", document.location(), e.toString());
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
             throw new PropertyNotFoundException(message, e);
         }
     }

@@ -9,12 +9,15 @@ public class YearOfPublishingFinder implements PropertyFinder<String> {
     private String cssQuery = "div#features td.attr:contains(Рік видання)";
 
     @Override
-    public Optional<String> findProperty(Document document) throws PropertyNotFoundException {
+    public Optional<String> findProperty(Document document) {
         try {
             String publishing = document.select(cssQuery).next().text();
             return (publishing.isEmpty()) ? Optional.empty() : Optional.of(publishing);
         } catch (Exception e) {
-            String message = String.format("\"YEAR PUBLISHING\" Not Found for URL: %s, cause: %s", document.location(), e.toString());
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
             throw new PropertyNotFoundException(message, e);
         }
     }

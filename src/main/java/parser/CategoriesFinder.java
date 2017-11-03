@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class CategoriesFinder implements PropertyFinder<List<String>> {
 
     @Override
-    public Optional<List<String>> findProperty(Document document) throws PropertyNotFoundException {
+    public Optional<List<String>> findProperty(Document document) {
         try {
             return Optional.of(document
                     .getElementsByClass("breadcrumb")

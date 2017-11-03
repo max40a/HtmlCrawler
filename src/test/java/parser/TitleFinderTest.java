@@ -25,7 +25,8 @@ public class TitleFinderTest {
         doc = Jsoup.parse(testableHtml.toString(), "UTF-8");
     }
 
-    @Test public void test_find_title_method() throws PropertyNotFoundException {
+    @Test
+    public void test_find_title_method() {
         String expectedTitle = "TEST TITLE.";
         assertEquals(expectedTitle, testableObject.findProperty(doc).get());
     }

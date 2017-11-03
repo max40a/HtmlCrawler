@@ -1,9 +1,6 @@
 package parser;
 
-public class PropertyNotFoundException extends Exception {
-
-    public PropertyNotFoundException() {
-    }
+public class PropertyNotFoundException extends RuntimeException {
 
     public PropertyNotFoundException(String message) {
         super(message);

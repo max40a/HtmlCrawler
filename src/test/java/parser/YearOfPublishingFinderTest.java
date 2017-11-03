@@ -31,7 +31,7 @@ public class YearOfPublishingFinderTest {
     }
 
     @Test
-    public void test_find_year_of_publishing_method() throws PropertyNotFoundException {
+    public void test_find_year_of_publishing_method() {
         assertEquals(searchYearOfPublishing, testableObject.findProperty(doc).get());
     }
 }

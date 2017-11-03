@@ -12,14 +12,17 @@ public class AuthorsFinder implements PropertyFinder<List<String>> {
     private String selectStr = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|ІВ))";
 
     @Override
-    public Optional<List<String>> findProperty(Document document) throws PropertyNotFoundException {
+    public Optional<List<String>> findProperty(Document document) {
         try {
             Elements searchElements = document.select(selectStr).parents().next();
             List<String> authors = new ArrayList<>();
             authorSearch(searchElements, authors, 0);
             return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
         } catch (Exception e) {
-            String message = String.format("\"AUTHORS\" Not Found for URL: %s, cause: %s", document.location(), e.toString());
+            String message = String.format("%s could not find property for URL: %s, cause: %s",
+                    this.getClass().getSimpleName(),
+                    document.location(),
+                    e.toString());
             throw new PropertyNotFoundException(message, e);
         }
     }

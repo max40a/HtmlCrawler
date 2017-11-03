@@ -6,5 +6,5 @@ import java.util.Optional;
 
 //TODO fixme
 public interface PropertyFinder<T> {
-    Optional<T> findProperty(Document document) throws PropertyNotFoundException;
+    Optional<T> findProperty(Document document);
 }

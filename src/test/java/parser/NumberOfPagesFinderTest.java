@@ -31,7 +31,7 @@ public class NumberOfPagesFinderTest {
     }
 
     @Test
-    public void test_find_number_of_pages_method() throws PropertyNotFoundException {
+    public void test_find_number_of_pages_method() {
         assertEquals(searchNumberOfPages, testableObject.findProperty(doc).get());
     }
 }

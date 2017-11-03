@@ -29,7 +29,7 @@ public class DescriptionFinderTest {
     }
 
     @Test
-    public void test_findProperty_method() throws PropertyNotFoundException {
+    public void test_findProperty_method() {
         assertEquals(searchString, testableObject.findProperty(doc).get());
     }
 }

@@ -28,7 +28,7 @@ public class PriceFinderTest {
     }
 
     @Test
-    public void test_find_year_price_method() throws PropertyNotFoundException {
+    public void test_find_year_price_method() {
         assertEquals(searchPrice, testableObject.findProperty(doc).get());
     }
 }

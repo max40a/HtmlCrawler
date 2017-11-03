@@ -40,7 +40,7 @@ public class IsbnFinderTest {
     }
 
     @Test
-    public void test_how_does_isbn_finder_find_isbn() throws PropertyNotFoundException {
+    public void test_how_does_isbn_finder_find_isbn() {
         Isbn expectedIsbn = Isbn.builder().language("UA").number("9786177388837").type("13").translation(true).build();
         assertEquals(expectedIsbn, testableObject.findProperty(doc).get());
     }
