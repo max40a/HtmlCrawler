@@ -2,6 +2,7 @@ package parser;
 
 import entity.Isbn;
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.util.Optional;
 
@@ -12,8 +13,16 @@ public class IsbnFinder implements PropertyFinder<Isbn> {
 
     @Override
     public Optional<Isbn> findProperty(Document document) {
-        String language = document.select(cssQueryByGetLanguage).next().text();
-        String isbnNumber = document.select(cssQueryByGetNumberOfIsbn).next().text();
+        Elements selectOfLanguage = document.select(cssQueryByGetLanguage);
+        Elements selectOfNumberIsbn = document.select(cssQueryByGetNumberOfIsbn);
+        if (selectOfLanguage.isEmpty() || selectOfNumberIsbn.isEmpty()) return Optional.empty();
+
+        Elements nextOfNumberIsbn = selectOfNumberIsbn.next();
+        Elements nextOfLanguage = selectOfLanguage.next();
+        if (nextOfLanguage.isEmpty() || nextOfNumberIsbn.isEmpty()) return Optional.empty();
+
+        String language = nextOfLanguage.text();
+        String isbnNumber = nextOfNumberIsbn.text();
         return Optional.of(toIsbn(isbnNumber, language));
     }
 

@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,10 +17,14 @@ public class AuthorsFinder implements PropertyFinder<List<String>> {
 
     @Override
     public Optional<List<String>> findProperty(Document document) {
-        Elements searchElements = document.select(selectStr).parents().next();
+        Elements select = document.select(selectStr);
+        if (select.isEmpty()) return Optional.empty();
+        Elements searchElements = select.parents().next();
+        if (searchElements.isEmpty()) return Optional.empty();
+
         List<String> authors = new ArrayList<>();
         authorSearch(searchElements, authors, 0);
-        return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
+        return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
     }
 
     private void authorSearch(Elements elements, List<String> list, int depth) {

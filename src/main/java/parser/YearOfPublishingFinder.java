@@ -1,6 +1,7 @@
 package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.util.Optional;
 
@@ -10,7 +11,7 @@ public class YearOfPublishingFinder implements PropertyFinder<String> {
 
     @Override
     public Optional<String> findProperty(Document document) {
-        String publishing = document.select(cssQuery).next().text();
-        return (publishing.isEmpty()) ? Optional.empty() : Optional.of(publishing);
+        Elements select = document.select(cssQuery);
+        return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
     }
 }

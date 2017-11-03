@@ -1,6 +1,8 @@
 package parser;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.Optional;
 
@@ -10,7 +12,11 @@ public class DescriptionFinder implements PropertyFinder<String> {
 
     @Override
     public Optional<String> findProperty(Document document) {
-        String description = document.select(cssQuery).parents().next().first().text();
-        return description.isEmpty() ? Optional.empty() : Optional.of(description);
+        Elements select = document.select(cssQuery);
+        if (select.isEmpty()) return Optional.empty();
+        Elements next = select.parents().next();
+        if (next.isEmpty()) return Optional.empty();
+        Element first = next.first();
+        return !first.hasText() ? Optional.empty() : Optional.ofNullable(first.text());
     }
 }
