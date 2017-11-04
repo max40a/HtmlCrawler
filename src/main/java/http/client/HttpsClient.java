@@ -22,14 +22,14 @@ import java.security.NoSuchAlgorithmException;
 
 public class HttpsClient {
 
-    public static String getStringHtmlContentOfUrl(URL url) throws Exception {
+    public String getStringHtmlContentOfUrl(URL url) throws Exception {
         return IOUtils.toString(getHttpClient()
                 .execute(new HttpGet(url.toURI()))
                 .getEntity()
                 .getContent(), "UTF-8");
     }
 
-    private static CloseableHttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    private CloseableHttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, (chain, authType) -> true)
                 .build();
