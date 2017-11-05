@@ -16,6 +16,7 @@ import org.apache.http.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -26,7 +27,7 @@ public class HttpsClient {
         return IOUtils.toString(getHttpClient()
                 .execute(new HttpGet(url.toURI()))
                 .getEntity()
-                .getContent(), "UTF-8");
+                .getContent(), StandardCharsets.UTF_8.name());
     }
 
     private CloseableHttpClient getHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {

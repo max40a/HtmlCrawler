@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import parser.PropertyFinder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +19,8 @@ public class BookConverter {
     }
 
     @SuppressWarnings("unchecked")
-    public Book toBook(String html) {
-        Document document = Jsoup.parse(html, "UTF-8");
+    public Book convertHtmlToBook(String html) {
+        Document document = Jsoup.parse(html, StandardCharsets.UTF_8.name());
         Book book = new Book();
 
         mapOfSearchEngines.get("title").findProperty(document).ifPresent(e -> book.setTitle((String) e));
