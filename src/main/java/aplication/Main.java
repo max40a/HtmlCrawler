@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import parser.*;
 import urls.database.UrlsGenerator;
+import urls.database.UrlsSieve;
 import urls.database.UrlsSupplier;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class Main {
 
     private static final String PATH_TO_LOCAL_LINKS = "exempls/links.txt";
     private static final String PATH_TO_LOG_PROPERTY_CONFIG_FILE = "log/log4j.properties";
-        private static final String PATH_TO_URL_PROVIDER_DB_PROPERTIES = "db/url.provider.properties";
+    private static final String PATH_TO_URL_PROVIDER_DB_PROPERTIES = "db/url.provider.properties";
 
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure(Main.class.getClassLoader().getResource(PATH_TO_LOG_PROPERTY_CONFIG_FILE));
@@ -66,9 +67,10 @@ public class Main {
         MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
 
         System.out.println();
-        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
-        int from = 709_050;
-        int to = 709_070;
+        UrlsSieve urlsSieve = new UrlsSieve(new HttpsClient());
+        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource, urlsSieve);
+        int from = 709_000;
+        int to = 709_010;
         urlsGenerator.generateUrls(from, to);
 
         List<URL> urls = new UrlsSupplier(dataSource).getUrls();
