@@ -1,6 +1,5 @@
 package urls.database;
 
-
 import org.apache.commons.dbutils.QueryRunner;
 
 import javax.sql.DataSource;
@@ -22,14 +21,12 @@ public class UrlsGenerator {
 
     public void generateUrls(int from, int to) throws SQLException, IOException {
         QueryRunner runner = new QueryRunner(dataSource);
-        // saveToDb(runner).accept("asdasd");
 
         Stream.iterate(from, i -> i + 1)
                 .limit(to - from + 1)
                 .map(i -> URL_TEMPLATE + i)
                 .forEach(saveToDb(runner));
     }
-
 
     public Consumer<String> saveToDb(QueryRunner runner) {
         String query = "INSERT INTO crawler.urls (url, retry) VALUES (?, ?)";

@@ -21,7 +21,6 @@ public class UrlsSupplier {
 
     public List<URL> getUrls() throws IOException, SQLException {
         String query = "SELECT url from crawler.urls";
-
         ColumnListHandler<String> urlColumnMapper = new ColumnListHandler<>("url");
 
         return new QueryRunner().query(dataSource.getConnection(), query, urlColumnMapper)
