@@ -29,6 +29,7 @@ public class UrlsGenerator {
         Stream.iterate(from, i -> i + 1)
                 .limit(to - from + 1)
                 .map(i -> URL_TEMPLATE + i)
+                .peek(System.out::println)
                 .filter(noExistBookUrlFilter())
                 .forEach(saveToDb(runner));
     }
