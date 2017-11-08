@@ -1,4 +1,4 @@
-package urls.database;
+package db.url;
 
 import http.client.HttpsClient;
 import org.jsoup.Jsoup;

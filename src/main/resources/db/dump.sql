@@ -9,6 +9,7 @@ SET time_zone = "+00:00";
 USE crawler;
 
 DROP TABLE IF EXISTS `urls`;
+DROP TABLE IF EXISTS `books`;
 
 CREATE TABLE IF NOT EXISTS `urls` (
   `id`     INT(11) PRIMARY KEY   NOT NULL AUTO_INCREMENT,
@@ -18,4 +19,14 @@ CREATE TABLE IF NOT EXISTS `urls` (
   `retry`  SMALLINT(6)                    DEFAULT '5'
 )
   ENGINE = InnoDB
-  DEFAULT CHARSET = latin1;
+  DEFAULT CHARSET = utf8;
+
+CREATE TABLE IF NOT EXISTS `books`
+(
+  `id`   INT(11) PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `url`  VARCHAR(2083)       NULL,
+  `book` TEXT                NULL,
+  `date` DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;

@@ -26,7 +26,7 @@ public class BookConverter {
         mapOfSearchEngines.get("title").findProperty(document).ifPresent(e -> book.setTitle((String) e));
         mapOfSearchEngines.get("authors").findProperty(document).ifPresent(e -> book.setAuthors((List<String>) e));
         mapOfSearchEngines.get("publishing").findProperty(document).ifPresent(e -> book.setPublishing((String) e));
-        mapOfSearchEngines.get("yearOfPublishing").findProperty(document).ifPresent(e -> book.setPublishing((String) e));
+        mapOfSearchEngines.get("yearOfPublishing").findProperty(document).ifPresent(e -> book.setYearOfPublishing((String) e));
         mapOfSearchEngines.get("numberOfPages").findProperty(document).ifPresent(e -> book.setNumberOfPages((String) e));
         mapOfSearchEngines.get("Isbn").findProperty(document).ifPresent(e -> book.setIsbn((Isbn) e));
         mapOfSearchEngines.get("categories").findProperty(document).ifPresent(e -> book.setCategories((List<String>) e));

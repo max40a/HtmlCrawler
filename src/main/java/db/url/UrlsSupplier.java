@@ -1,4 +1,4 @@
-package urls.database;
+package db.url;
 
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ColumnListHandler;

@@ -3,16 +3,19 @@ package aplication;
 import book.providers.BookProvider;
 import book.providers.LocalBookProvider;
 import book.providers.RemoteBookProvider;
+import com.google.gson.Gson;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.BookConverter;
+import db.book.BookKeeper;
+import db.url.UrlsGenerator;
+import db.url.UrlsSieve;
+import db.url.UrlsSupplier;
+import entity.Book;
 import http.client.HttpsClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import parser.*;
-import urls.database.UrlsGenerator;
-import urls.database.UrlsSieve;
-import urls.database.UrlsSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,15 +72,19 @@ public class Main {
         System.out.println();
         UrlsSieve urlsSieve = new UrlsSieve(new HttpsClient());
         UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource, urlsSieve);
-        int from = 709_000;
-        int to = 709_010;
+        int from = 706_000;
+        int to = 706_500;
         urlsGenerator.generateUrls(from, to);
 
         List<URL> urls = new UrlsSupplier(dataSource).getUrls();
+        Gson bookToJsonConverter = new Gson();
+        BookKeeper bookKeeper = new BookKeeper(dataSource);
 
         for (URL url : urls) {
             try {
-                System.out.println(converter.convertHtmlToBook(remoteProvider.getBookHtml(url)));
+                Book book = converter.convertHtmlToBook(remoteProvider.getBookHtml(url));
+                System.out.println(book);
+                bookKeeper.saveBook(bookToJsonConverter.toJson(book), url);
             } catch (Exception e) {
                 log.error(e);
             }
@@ -90,6 +97,7 @@ public class Main {
         dataSource.setDatabaseName(dbProperties.getProperty("jdbc.dbname"));
         dataSource.setUser(dbProperties.getProperty("jdbc.username"));
         dataSource.setPassword(dbProperties.getProperty("jdbc.password"));
+        dataSource.setCharacterEncoding(StandardCharsets.UTF_8.name());
         return dataSource;
     }
 
