@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import parser.*;
+import parser.alterntive.AuthorsFinder2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +41,7 @@ public class Main {
         Map<String, PropertyFinder> searchEngines = new LinkedHashMap<>();
         searchEngines.put("title", new TitleFinder());
         searchEngines.put("authors", new AuthorsFinder());
+        searchEngines.put("authors2", new AuthorsFinder2());
         searchEngines.put("publishing", new PublishingFinder());
         searchEngines.put("yearOfPublishing", new YearOfPublishingFinder());
         searchEngines.put("numberOfPages", new NumberOfPagesFinder());
