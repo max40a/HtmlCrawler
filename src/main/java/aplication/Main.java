@@ -73,7 +73,7 @@ public class Main {
         UrlsSieve urlsSieve = new UrlsSieve(new HttpsClient());
         UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource, urlsSieve);
         int from = 706_000;
-        int to = 706_500;
+        int to = 706_010;
         urlsGenerator.generateUrls(from, to);
 
         List<URL> urls = new UrlsSupplier(dataSource).getUrls();
