@@ -23,13 +23,8 @@ public class BookConverter {
         Document document = Jsoup.parse(html, StandardCharsets.UTF_8.name());
         Book book = new Book();
 
-        String query = "div#features tr.params > td.attr:matchesOwn(^Автор$)";
-        PropertyFinder<List<String>> authorsFinder = (document.select(query).isEmpty())
-                ? mapOfSearchEngines.get("authors")
-                : mapOfSearchEngines.get("authors2");
-        authorsFinder.findProperty(document).ifPresent(book::setAuthors);
-
         mapOfSearchEngines.get("title").findProperty(document).ifPresent(e -> book.setTitle((String) e));
+        mapOfSearchEngines.get("authors").findProperty(document).ifPresent(e -> book.setAuthors((List<String>) e));
         mapOfSearchEngines.get("publishing").findProperty(document).ifPresent(e -> book.setPublishing((String) e));
         mapOfSearchEngines.get("yearOfPublishing").findProperty(document).ifPresent(e -> book.setYearOfPublishing((String) e));
         mapOfSearchEngines.get("numberOfPages").findProperty(document).ifPresent(e -> book.setNumberOfPages((String) e));

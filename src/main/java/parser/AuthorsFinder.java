@@ -12,20 +12,21 @@ public class AuthorsFinder implements PropertyFinder<List<String>> {
 
     private static final int MAX_NUMBER_OF_AUTHORS = 5;
 
-    private String selectStr = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|ІВ)), " +
+    private String selectStr1 = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|ІВ)), " +
             "div#annotation p > b:matchesOwn(^ПРО АВТОР(А|ІВ))";
+
+    private String selectStr12 = "div#features tr.params > td.attr:matchesOwn(^Автор$)";
 
     @Override
     public Optional<List<String>> findProperty(Document document) {
         try {
-            Elements select = document.select(selectStr);
-            if (select.isEmpty()) return Optional.empty();
-            Elements searchElements = select.parents().next();
-            if (searchElements.isEmpty()) return Optional.empty();
-
-            List<String> authors = new ArrayList<>();
-            authorSearch(searchElements, authors, 0);
-            return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
+            Elements select = document.select(selectStr1);
+            if (!select.isEmpty()) {
+                return firstSearch(select);
+            } else {
+                select = document.select(selectStr12);
+                return secondSearch(select);
+            }
         } catch (Exception e) {
             String message = String.format("%s could not find property for URL: %s, cause: %s",
                     this.getClass().getSimpleName(),
@@ -40,5 +41,20 @@ public class AuthorsFinder implements PropertyFinder<List<String>> {
         if (elements.text().matches(stopSearchCriteriaRegExp) || depth > MAX_NUMBER_OF_AUTHORS) return;
         list.add(elements.select("p > strong").text());
         authorSearch(elements.next(), list, depth + 1);
+    }
+
+    private Optional<List<String>> firstSearch(Elements currentSelect) {
+        Elements searchElements = currentSelect.parents().next();
+        if (searchElements.isEmpty()) return Optional.empty();
+        List<String> authors = new ArrayList<>();
+        authorSearch(searchElements, authors, 0);
+        return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
+    }
+
+    private Optional<List<String>> secondSearch(Elements currentSelect) {
+        Elements searchElement = currentSelect.next();
+        if (searchElement.isEmpty()) return Optional.empty();
+        String authors = searchElement.text();
+        return Optional.of(Collections.singletonList(authors));
     }
 }
