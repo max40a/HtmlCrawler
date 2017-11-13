@@ -66,14 +66,10 @@ public class BookParser extends AbstractBookParser {
     protected Optional<String> findDescription(Document document) {
         Elements select = document.select(SELECT_DESCRIPTION_CSS_QUERY_V1);
         if (!select.isEmpty()) {
-            Elements next = select.parents().next();
-            if (next.isEmpty()) return Optional.empty();
-            Element first = next.first();
+            Element first = select.parents().next().first();
             return !first.hasText() ? Optional.empty() : Optional.ofNullable(first.text());
         } else {
-            select = document.select(SELECT_DESCRIPTION_CSS_QUERY_V2);
-            if (select.isEmpty()) return Optional.empty();
-            return Optional.ofNullable(select.text());
+            return Optional.ofNullable(document.select(SELECT_DESCRIPTION_CSS_QUERY_V2).text());
         }
     }
 
