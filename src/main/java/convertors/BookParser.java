@@ -79,17 +79,9 @@ public class BookParser extends AbstractBookParser {
 
     @Override
     protected Optional<Isbn> findIsbn(Document document) {
-        Elements selectOfLanguage = document.select(CSS_QUERY_BY_GET_LANGUAGE);
-        Elements selectOfNumberIsbn = document.select(CSS_QUERY_BY_GET_NUMBER_OF_ISBN);
-        if (selectOfLanguage.isEmpty() || selectOfNumberIsbn.isEmpty()) return Optional.empty();
-
-        Elements nextOfNumberIsbn = selectOfNumberIsbn.next();
-        Elements nextOfLanguage = selectOfLanguage.next();
-        if (nextOfLanguage.isEmpty() || nextOfNumberIsbn.isEmpty()) return Optional.empty();
-
-        String language = nextOfLanguage.text();
-        String isbnNumber = nextOfNumberIsbn.text();
-        return Optional.of(toIsbn(isbnNumber, language));
+        return Optional.ofNullable(toIsbn(
+                document.select(CSS_QUERY_BY_GET_NUMBER_OF_ISBN).next().text(),
+                document.select(CSS_QUERY_BY_GET_LANGUAGE).next().text()));
     }
 
     private Isbn toIsbn(String number, String language) {
@@ -108,26 +100,22 @@ public class BookParser extends AbstractBookParser {
 
     @Override
     protected Optional<String> findNumberOfPages(Document document) {
-        Elements select = document.select(CSS_QUERY_BY_GET_NUMBER_OF_PAGES);
-        return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
+        return Optional.ofNullable(document.select(CSS_QUERY_BY_GET_NUMBER_OF_PAGES).next().text());
     }
 
     @Override
     protected Optional<String> findPrice(Document document) {
-        Elements select = document.select("div > span.fn-price");
-        return select.isEmpty() ? Optional.empty() : Optional.ofNullable(select.first().text());
+        return Optional.ofNullable(document.select("div > span.fn-price").first().text());
     }
 
     @Override
     protected Optional<String> findPublishing(Document document) {
-        Elements select = document.select(CSS_QUERY_BY_GET_PUBLISHING);
-        return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
+        return Optional.ofNullable(document.select(CSS_QUERY_BY_GET_PUBLISHING).next().text());
     }
 
     @Override
     protected Optional<String> findTitle(Document document) {
-        Elements select = document.select("span[data-product]");
-        return (select.isEmpty()) ? Optional.empty() : Optional.of(getTitle(select.first().text()));
+        return Optional.of(getTitle(document.select("span[data-product]").first().text()));
     }
 
     private String getTitle(String s) {
@@ -138,7 +126,6 @@ public class BookParser extends AbstractBookParser {
 
     @Override
     protected Optional<String> findYearOfPublishing(Document document) {
-        Elements select = document.select(CSS_QUERY_BY_GET_YEAR_OF_PULISHING);
-        return (select.isEmpty()) ? Optional.empty() : Optional.ofNullable(select.next().text());
+        return Optional.ofNullable(document.select(CSS_QUERY_BY_GET_YEAR_OF_PULISHING).next().text());
     }
 }
