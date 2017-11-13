@@ -9,7 +9,7 @@ import convertors.AbstractBookParser;
 import convertors.BookParser;
 import db.book.BookKeeper;
 import db.url.UrlsGenerator;
-import db.url.UrlsSieve;
+import db.url.UrlSieve;
 import db.url.UrlsSupplier;
 import entity.Book;
 import http.client.HttpsClient;
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
@@ -34,45 +35,49 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure(Main.class.getClassLoader().getResource(PATH_TO_LOG_PROPERTY_CONFIG_FILE));
+        Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
+        MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
 
-        HttpsClient client = new HttpsClient();
+        AbstractBookParser parser = new BookParser();
 
+        /*LOCAL PART*/
         BookProvider localProvider = new LocalBookProvider();
-        BookProvider remoteProvider = new RemoteBookProvider(client);
-
         List<String> links = IOUtils.readLines(
                 Main.class.getClassLoader().getResourceAsStream(PATH_TO_LOCAL_LINKS),
                 StandardCharsets.UTF_8.name());
 
-        AbstractBookParser parser = new BookParser();
-
         for (String link : links) {
             try {
-                System.out.println(parser.convertHtmlToBook(localProvider.getBookHtml(new URL(link))));
+                localProvider.getBookHtml(new URL(link)).ifPresent(s -> System.out.println(parser.convertHtmlToBook(s)));
             } catch (Exception e) {
                 log.error(e);
             }
         }
 
-        Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
-        MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
-
-        System.out.println();
-        UrlsSieve urlsSieve = new UrlsSieve(new HttpsClient());
-        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource, urlsSieve);
-        int from = 706_000;
-        int to = 706_010;
-        urlsGenerator.generateUrls(from, to);
-
-        List<URL> urls = new UrlsSupplier(dataSource).getUrls();
+       /* REMOTE PART*/
+        HttpsClient client = new HttpsClient();
+        UrlSieve sieve = new UrlSieve(dataSource);
+        BookProvider remoteProvider = new RemoteBookProvider(client, sieve);
+        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
         BookKeeper bookKeeper = new BookKeeper(dataSource);
 
+        int from = 709_000;
+        int to = 709_100;
+        urlsGenerator.generateUrls(from, to);
+
+        List<URL> urls = new UrlsSupplier(dataSource).getUrls();
         for (URL url : urls) {
             try {
-                Book book = parser.convertHtmlToBook(remoteProvider.getBookHtml(url));
-                System.out.println(book);
-                bookKeeper.saveBook(bookToJsonConverter.toJson(book), url);
+                remoteProvider.getBookHtml(url).ifPresent(s -> {
+                    Book book = parser.convertHtmlToBook(s);
+                    System.out.println(book);
+                    try {
+                        bookKeeper.saveBook(bookToJsonConverter.toJson(book), url);
+                    } catch (SQLException e) {
+                        log.error(e);
+                    }
+                });
             } catch (Exception e) {
                 log.error(e);
             }
