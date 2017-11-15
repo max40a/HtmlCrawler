@@ -19,6 +19,6 @@ public class RemoteBookProvider implements BookProvider {
     @Override
     public Optional<String> getBookHtml(URL url) throws Exception {
         String html = client.getStringHtmlContentOfUrl(url);
-        return sieve.sieveOfHtml(html, url);
+        return sieve.sieveOfHtml(html, url.toString());
     }
 }

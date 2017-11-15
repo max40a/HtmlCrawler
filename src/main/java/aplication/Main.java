@@ -8,8 +8,8 @@ import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
 import db.book.BookKeeper;
-import db.url.UrlsGenerator;
 import db.url.UrlSieve;
+import db.url.UrlsGenerator;
 import db.url.UrlsSupplier;
 import entity.Book;
 import http.client.HttpsClient;
@@ -62,8 +62,8 @@ public class Main {
         Gson bookToJsonConverter = new Gson();
         BookKeeper bookKeeper = new BookKeeper(dataSource);
 
-        int from = 709_000;
-        int to = 709_100;
+        int from = 709_010;
+        int to = 709_030;
         urlsGenerator.generateUrls(from, to);
 
         List<URL> urls = new UrlsSupplier(dataSource).getUrls();
@@ -71,9 +71,10 @@ public class Main {
             try {
                 remoteProvider.getBookHtml(url).ifPresent(s -> {
                     Book book = parser.convertHtmlToBook(s);
-                    System.out.println(book);
+
                     try {
-                        bookKeeper.saveBook(bookToJsonConverter.toJson(book), url);
+                        String bookJson = bookToJsonConverter.toJson(book);
+                        bookKeeper.saveBook(url.toString(), bookJson);
                     } catch (SQLException e) {
                         log.error(e);
                     }
