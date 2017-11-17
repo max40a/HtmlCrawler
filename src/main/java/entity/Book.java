@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class Book {
-    private Integer id;
     private String title;
     private List<String> authors = new ArrayList<>();
     private String publishing;

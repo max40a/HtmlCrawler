@@ -14,7 +14,8 @@ public class BookJsonValidator {
     public static boolean validateJson(String entityJson, Class entityClass) {
         JsonObject jsonObject = new JsonParser().parse(entityJson).getAsJsonObject();
 
-        for (String field : getListNamesOfEntityFields(entityClass)) {
+        List<String> listNamesOfEntityFields = getListNamesOfEntityFields(entityClass);
+        for (String field : listNamesOfEntityFields) {
             JsonElement jsonElement = jsonObject.get(field);
             if (jsonElement.isJsonNull()) {
                 return false;

@@ -20,7 +20,23 @@ public class UrlsSupplier {
     }
 
     public List<URL> getUrls() throws IOException, SQLException {
-        String query = "SELECT url from crawler.urls WHERE `content present`!=false";
+        String query = "SELECT url FROM crawler.urls WHERE `content present`!=false AND `retry` <= 5";
+        return getListOfUrls(query);
+    }
+
+    public void changeRetryStatusSuccessCase(String urlToBook) throws SQLException {
+        String query = "UPDATE crawler.urls SET `result`=true WHERE `url`=?";
+        QueryRunner runner = new QueryRunner(dataSource);
+        runner.update(query, urlToBook);
+    }
+
+    public void changeRetryStatusUnfortunateCase(String urlToBook) throws SQLException {
+        String query = "UPDATE crawler.urls SET `result`=false, `retry`=(retry-?) WHERE `url`=?";
+        QueryRunner runner = new QueryRunner(dataSource);
+        runner.update(query, 1, urlToBook);
+    }
+
+    private List<URL> getListOfUrls(String query) throws SQLException {
         ColumnListHandler<String> urlColumnMapper = new ColumnListHandler<>("url");
 
         return new QueryRunner().query(dataSource.getConnection(), query, urlColumnMapper)

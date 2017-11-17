@@ -1,7 +1,6 @@
 package aplication;
 
 import book.providers.BookProvider;
-import book.providers.LocalBookProvider;
 import book.providers.RemoteBookProvider;
 import com.google.gson.Gson;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
@@ -13,9 +12,9 @@ import db.url.UrlsGenerator;
 import db.url.UrlsSupplier;
 import entity.Book;
 import http.client.HttpsClient;
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import validate.BookJsonValidator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +27,7 @@ import java.util.Properties;
 public class Main {
 
     private static final Logger log = Logger.getLogger(Main.class);
+    private static final int COUNT_OF_RETRY_ATTEMPTS = 5;
 
     private static final String PATH_TO_LOCAL_LINKS = "exempls/links.txt";
     private static final String PATH_TO_LOG_PROPERTY_CONFIG_FILE = "log/log4j.properties";
@@ -40,7 +40,7 @@ public class Main {
 
         AbstractBookParser parser = new BookParser();
 
-        /*LOCAL PART*/
+       /* *//*LOCAL PART*//*
         BookProvider localProvider = new LocalBookProvider();
         List<String> links = IOUtils.readLines(
                 Main.class.getClassLoader().getResourceAsStream(PATH_TO_LOCAL_LINKS),
@@ -52,7 +52,7 @@ public class Main {
             } catch (Exception e) {
                 log.error(e);
             }
-        }
+        }*/
 
        /* REMOTE PART*/
         HttpsClient client = new HttpsClient();
@@ -61,28 +61,40 @@ public class Main {
         UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
         BookKeeper bookKeeper = new BookKeeper(dataSource);
+        UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
 
         int from = 709_010;
         int to = 709_030;
         urlsGenerator.generateUrls(from, to);
 
-        List<URL> urls = new UrlsSupplier(dataSource).getUrls();
-        for (URL url : urls) {
-            try {
-                remoteProvider.getBookHtml(url).ifPresent(s -> {
-                    Book book = parser.convertHtmlToBook(s);
-
-                    try {
-                        String bookJson = bookToJsonConverter.toJson(book);
-                        bookKeeper.saveBook(url.toString(), bookJson);
-                    } catch (SQLException e) {
-                        log.error(e);
-                    }
-                });
-            } catch (Exception e) {
-                log.error(e);
-            }
+        List<URL> urls = urlsSupplier.getUrls();
+        try {
+            bookConvertHandling(urls, remoteProvider, bookToJsonConverter, parser, bookKeeper, urlsSupplier, COUNT_OF_RETRY_ATTEMPTS);
+        } catch (Exception e) {
+            log.error(e);
         }
+    }
+
+    private static void bookConvertHandling(List<URL> urls, BookProvider remoteProvider,
+                                            Gson bookToJsonConverter, AbstractBookParser parser,
+                                            BookKeeper bookKeeper, UrlsSupplier urlsSupplier, int depth) throws Exception {
+        if (depth <= 0) return;
+        for (URL url : urls) {
+            remoteProvider.getBookHtml(url).ifPresent((String html) -> {
+                String bookJson = bookToJsonConverter.toJson(parser.convertHtmlToBook(html));
+                try {
+                    if (BookJsonValidator.validateJson(bookJson, Book.class)) {
+                        bookKeeper.saveBook(url.toString(), bookJson);
+                        urlsSupplier.changeRetryStatusSuccessCase(url.toString());
+                    } else {
+                        urlsSupplier.changeRetryStatusUnfortunateCase(url.toString());
+                    }
+                } catch (SQLException e) {
+                    log.error(e);
+                }
+            });
+        }
+        bookConvertHandling(urls, remoteProvider, bookToJsonConverter, parser, bookKeeper, urlsSupplier, depth - 1);
     }
 
     private static MysqlConnectionPoolDataSource initDataSource(Properties dbProperties) throws IOException {
