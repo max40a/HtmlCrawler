@@ -1,33 +1,36 @@
 package aplication;
 
 import book.providers.BookProvider;
+import book.providers.LocalBookProvider;
 import book.providers.RemoteBookProvider;
 import com.google.gson.Gson;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
+import db.book.BookHandleService;
 import db.book.BookKeeper;
 import db.url.UrlSieve;
 import db.url.UrlsGenerator;
 import db.url.UrlsSupplier;
-import entity.Book;
 import http.client.HttpsClient;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import validate.BookJsonValidator;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+import time.task.BookServiceTask;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
     private static final Logger log = Logger.getLogger(Main.class);
-    private static final int COUNT_OF_RETRY_ATTEMPTS = 5;
 
     private static final String PATH_TO_LOCAL_LINKS = "exempls/links.txt";
     private static final String PATH_TO_LOG_PROPERTY_CONFIG_FILE = "log/log4j.properties";
@@ -40,7 +43,7 @@ public class Main {
 
         AbstractBookParser parser = new BookParser();
 
-       /* *//*LOCAL PART*//*
+        //*LOCAL PART*/
         BookProvider localProvider = new LocalBookProvider();
         List<String> links = IOUtils.readLines(
                 Main.class.getClassLoader().getResourceAsStream(PATH_TO_LOCAL_LINKS),
@@ -52,49 +55,47 @@ public class Main {
             } catch (Exception e) {
                 log.error(e);
             }
-        }*/
+        }
 
        /* REMOTE PART*/
         HttpsClient client = new HttpsClient();
         UrlSieve sieve = new UrlSieve(dataSource);
-        BookProvider remoteProvider = new RemoteBookProvider(client, sieve);
         UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
         BookKeeper bookKeeper = new BookKeeper(dataSource);
         UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
 
+        BookProvider bookProvider = new RemoteBookProvider(client, sieve);
+        BookHandleService service = new BookHandleService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookKeeper);
+
         int from = 709_010;
         int to = 709_030;
         urlsGenerator.generateUrls(from, to);
 
-        List<URL> urls = urlsSupplier.getUrls();
-        try {
-            bookConvertHandling(urls, remoteProvider, bookToJsonConverter, parser, bookKeeper, urlsSupplier, COUNT_OF_RETRY_ATTEMPTS);
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
+        SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+        Scheduler scheduler = schedulerFactory.getScheduler();
 
-    private static void bookConvertHandling(List<URL> urls, BookProvider remoteProvider,
-                                            Gson bookToJsonConverter, AbstractBookParser parser,
-                                            BookKeeper bookKeeper, UrlsSupplier urlsSupplier, int depth) throws Exception {
-        if (depth <= 0) return;
-        for (URL url : urls) {
-            remoteProvider.getBookHtml(url).ifPresent((String html) -> {
-                String bookJson = bookToJsonConverter.toJson(parser.convertHtmlToBook(html));
-                try {
-                    if (BookJsonValidator.validateJson(bookJson, Book.class)) {
-                        bookKeeper.saveBook(url.toString(), bookJson);
-                        urlsSupplier.changeRetryStatusSuccessCase(url.toString());
-                    } else {
-                        urlsSupplier.changeRetryStatusUnfortunateCase(url.toString());
-                    }
-                } catch (SQLException e) {
-                    log.error(e);
-                }
-            });
-        }
-        bookConvertHandling(urls, remoteProvider, bookToJsonConverter, parser, bookKeeper, urlsSupplier, depth - 1);
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("service", service);
+
+        JobDetail jobDetail = JobBuilder.newJob(BookServiceTask.class)
+                .withIdentity("parserjob", "group1")
+                .usingJobData(jobDataMap)
+                .build();
+
+        SimpleTrigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity("parsertrigger", "group1")
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder
+                        .simpleSchedule()
+                        .withIntervalInMinutes(1)
+                        .withRepeatCount(4))
+                .build();
+
+        scheduler.scheduleJob(jobDetail, trigger);
+        scheduler.start();
+        TimeUnit.MINUTES.sleep(5);
+        scheduler.shutdown(true);
     }
 
     private static MysqlConnectionPoolDataSource initDataSource(Properties dbProperties) throws IOException {
