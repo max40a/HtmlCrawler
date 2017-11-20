@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BookJsonValidator {
+public class BookValidator {
 
     public static boolean validateJson(String entityJson, Class entityClass) {
         JsonObject jsonObject = new JsonParser().parse(entityJson).getAsJsonObject();

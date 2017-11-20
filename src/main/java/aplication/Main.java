@@ -7,7 +7,7 @@ import com.google.gson.Gson;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
-import db.book.BookHandleService;
+import db.book.BookService;
 import db.book.BookKeeper;
 import db.url.UrlSieve;
 import db.url.UrlsGenerator;
@@ -66,7 +66,7 @@ public class Main {
         UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
 
         BookProvider bookProvider = new RemoteBookProvider(client, sieve);
-        BookHandleService service = new BookHandleService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookKeeper);
+        BookService service = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookKeeper);
 
         int from = 709_010;
         int to = 709_030;

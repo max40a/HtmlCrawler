@@ -1,6 +1,6 @@
 package time.task;
 
-import db.book.BookHandleService;
+import db.book.BookService;
 import org.quartz.*;
 
 public class BookServiceTask implements Job {
@@ -8,7 +8,7 @@ public class BookServiceTask implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap dataMap = context.getMergedJobDataMap();
-        BookHandleService service = (BookHandleService) dataMap.get("service");
+        BookService service = (BookService) dataMap.get("service");
         service.executeService();
     }
 }
