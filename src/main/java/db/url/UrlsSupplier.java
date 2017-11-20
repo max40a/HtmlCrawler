@@ -1,10 +1,10 @@
 package db.url;
 
+import db.BadRequestException;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ColumnListHandler;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -19,21 +19,36 @@ public class UrlsSupplier {
         this.dataSource = dataSource;
     }
 
-    public List<URL> getUrls() throws IOException, SQLException {
+    public List<URL> getUrls() throws BadRequestException {
         String query = "SELECT url FROM crawler.urls WHERE `content present`!=false AND `retry` <= 5";
-        return getListOfUrls(query);
+        try {
+            return getListOfUrls(query);
+        } catch (SQLException e) {
+            String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
+            throw new BadRequestException(message, e);
+        }
     }
 
-    public void changeRetryStatusSuccessCase(String urlToBook) throws SQLException {
+    public void changeRetryStatusSuccessCase(String urlToBook) throws BadRequestException {
         String query = "UPDATE crawler.urls SET `result`=true WHERE `url`=?";
         QueryRunner runner = new QueryRunner(dataSource);
-        runner.update(query, urlToBook);
+        try {
+            runner.update(query, urlToBook);
+        } catch (SQLException e) {
+            String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
+            throw new BadRequestException(message, e);
+        }
     }
 
-    public void changeRetryStatusUnfortunateCase(String urlToBook) throws SQLException {
+    public void changeRetryStatusUnfortunateCase(String urlToBook) throws BadRequestException {
         String query = "UPDATE crawler.urls SET `result`=false, `retry`=(retry-?) WHERE `url`=?";
         QueryRunner runner = new QueryRunner(dataSource);
-        runner.update(query, 1, urlToBook);
+        try {
+            runner.update(query, 1, urlToBook);
+        } catch (SQLException e) {
+            String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
+            throw new BadRequestException(message, e);
+        }
     }
 
     private List<URL> getListOfUrls(String query) throws SQLException {
@@ -49,7 +64,8 @@ public class UrlsSupplier {
         try {
             return new URL(s);
         } catch (MalformedURLException e) {
-            throw new IllegalStateException("Url creation error", e);
+            String message = String.format("Url creation error for this string : %s", s);
+            throw new IllegalStateException(message, e);
         }
     }
 }

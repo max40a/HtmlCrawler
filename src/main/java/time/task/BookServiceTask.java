@@ -8,7 +8,7 @@ public class BookServiceTask implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap dataMap = context.getMergedJobDataMap();
-        BookService service = (BookService) dataMap.get("service");
+        BookService service = (BookService) dataMap.get("bookService");
         service.executeService();
     }
 }

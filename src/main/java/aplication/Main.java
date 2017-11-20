@@ -8,7 +8,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
 import db.book.BookService;
-import db.book.BookKeeper;
+import db.book.BookDao;
 import db.url.UrlSieve;
 import db.url.UrlsGenerator;
 import db.url.UrlsSupplier;
@@ -62,11 +62,11 @@ public class Main {
         UrlSieve sieve = new UrlSieve(dataSource);
         UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
-        BookKeeper bookKeeper = new BookKeeper(dataSource);
+        BookDao bookDao = new BookDao(dataSource);
         UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
 
         BookProvider bookProvider = new RemoteBookProvider(client, sieve);
-        BookService service = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookKeeper);
+        BookService bookService = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookDao);
 
         int from = 709_010;
         int to = 709_030;
@@ -76,15 +76,15 @@ public class Main {
         Scheduler scheduler = schedulerFactory.getScheduler();
 
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("service", service);
+        jobDataMap.put("bookService", bookService);
 
         JobDetail jobDetail = JobBuilder.newJob(BookServiceTask.class)
-                .withIdentity("parserjob", "group1")
+                .withIdentity("parserJob", "group1")
                 .usingJobData(jobDataMap)
                 .build();
 
         SimpleTrigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity("parsertrigger", "group1")
+                .withIdentity("parserTrigger", "group1")
                 .startNow()
                 .withSchedule(SimpleScheduleBuilder
                         .simpleSchedule()
