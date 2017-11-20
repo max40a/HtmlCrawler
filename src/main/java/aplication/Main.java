@@ -7,15 +7,18 @@ import com.google.gson.Gson;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
+import db.book.BookService;
 import db.book.BookKeeper;
+import db.url.UrlSieve;
 import db.url.UrlsGenerator;
-import db.url.UrlsSieve;
 import db.url.UrlsSupplier;
-import entity.Book;
 import http.client.HttpsClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+import time.task.BookServiceTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +26,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -34,49 +38,64 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure(Main.class.getClassLoader().getResource(PATH_TO_LOG_PROPERTY_CONFIG_FILE));
+        Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
+        MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
 
-        HttpsClient client = new HttpsClient();
+        AbstractBookParser parser = new BookParser();
 
+        //*LOCAL PART*/
         BookProvider localProvider = new LocalBookProvider();
-        BookProvider remoteProvider = new RemoteBookProvider(client);
-
         List<String> links = IOUtils.readLines(
                 Main.class.getClassLoader().getResourceAsStream(PATH_TO_LOCAL_LINKS),
                 StandardCharsets.UTF_8.name());
 
-        AbstractBookParser parser = new BookParser();
-
         for (String link : links) {
             try {
-                System.out.println(parser.convertHtmlToBook(localProvider.getBookHtml(new URL(link))));
+                localProvider.getBookHtml(new URL(link)).ifPresent(s -> System.out.println(parser.convertHtmlToBook(s)));
             } catch (Exception e) {
                 log.error(e);
             }
         }
 
-        Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
-        MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
-
-        System.out.println();
-        UrlsSieve urlsSieve = new UrlsSieve(new HttpsClient());
-        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource, urlsSieve);
-        int from = 706_000;
-        int to = 706_010;
-        urlsGenerator.generateUrls(from, to);
-
-        List<URL> urls = new UrlsSupplier(dataSource).getUrls();
+       /* REMOTE PART*/
+        HttpsClient client = new HttpsClient();
+        UrlSieve sieve = new UrlSieve(dataSource);
+        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
         BookKeeper bookKeeper = new BookKeeper(dataSource);
+        UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
 
-        for (URL url : urls) {
-            try {
-                Book book = parser.convertHtmlToBook(remoteProvider.getBookHtml(url));
-                System.out.println(book);
-                bookKeeper.saveBook(bookToJsonConverter.toJson(book), url);
-            } catch (Exception e) {
-                log.error(e);
-            }
-        }
+        BookProvider bookProvider = new RemoteBookProvider(client, sieve);
+        BookService service = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookKeeper);
+
+        int from = 709_010;
+        int to = 709_030;
+        urlsGenerator.generateUrls(from, to);
+
+        SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+        Scheduler scheduler = schedulerFactory.getScheduler();
+
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("service", service);
+
+        JobDetail jobDetail = JobBuilder.newJob(BookServiceTask.class)
+                .withIdentity("parserjob", "group1")
+                .usingJobData(jobDataMap)
+                .build();
+
+        SimpleTrigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity("parsertrigger", "group1")
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder
+                        .simpleSchedule()
+                        .withIntervalInMinutes(1)
+                        .withRepeatCount(4))
+                .build();
+
+        scheduler.scheduleJob(jobDetail, trigger);
+        scheduler.start();
+        TimeUnit.MINUTES.sleep(5);
+        scheduler.shutdown(true);
     }
 
     private static MysqlConnectionPoolDataSource initDataSource(Properties dbProperties) throws IOException {

@@ -34,7 +34,7 @@ public class BookParser extends AbstractBookParser {
             if (searchElements.isEmpty()) return Optional.empty();
             List<String> authors = new ArrayList<>();
             authorSearch(searchElements, authors, 0);
-            return authors.isEmpty() ? Optional.of(Collections.emptyList()) : Optional.of(authors);
+            return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
         } else {
             select = document.select(SELECT_AUTHOR_CSS_QUERY_V2);
             if (select.isEmpty()) return Optional.empty();

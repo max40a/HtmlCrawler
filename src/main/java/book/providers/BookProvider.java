@@ -1,7 +1,8 @@
 package book.providers;
 
 import java.net.URL;
+import java.util.Optional;
 
 public interface BookProvider {
-    String getBookHtml(URL url) throws Exception;
+    Optional<String> getBookHtml(URL url) throws Exception;
 }
