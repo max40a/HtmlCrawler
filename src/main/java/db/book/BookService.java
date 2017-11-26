@@ -73,10 +73,10 @@ public class BookService {
     }
 
     private void decideToSaveBook(String urlToBook, String bookJson) {
-        if (bookDao.checkExistBook(urlToBook) == 0) {
-            bookDao.saveBook(urlToBook, bookJson);
-        } else {
+        if (bookDao.isBookExist(urlToBook)) {
             bookDao.updateExistBook(urlToBook, bookJson);
+        } else {
+            bookDao.saveBook(urlToBook, bookJson);
         }
     }
 }

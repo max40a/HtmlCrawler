@@ -24,13 +24,13 @@ public class BookDao {
         }
     }
 
-    public int checkExistBook(String urlToBook) {
+    public boolean isBookExist(String urlToBook) {
         String query = "SELECT exists(SELECT url FROM crawler.books WHERE url=?)";
         try {
-            return queryRunner.query(query, rs -> {
+            return (queryRunner.query(query, rs -> {
                 rs.next();
                 return rs.getInt(1);
-            }, urlToBook);
+            }, urlToBook)) != 0;
         } catch (SQLException e) {
             String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
             throw new BadRequestException(message, e);
