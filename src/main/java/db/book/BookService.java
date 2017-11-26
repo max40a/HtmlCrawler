@@ -7,9 +7,13 @@ import db.url.UrlsSupplier;
 import entity.Book;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import validate.BookValidator;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class BookService {
@@ -22,17 +26,19 @@ public class BookService {
     private AbstractBookParser parser;
     private Gson bookToJsonConverter;
     private BookDao bookDao;
+    private Validator validator;
 
     public BookService(UrlsSupplier urlsSupplier,
                        BookProvider bookProvider,
                        AbstractBookParser parser,
                        Gson bookToJsonConverter,
-                       BookDao bookDao) {
+                       BookDao bookDao, Validator validator) {
         this.urlsSupplier = urlsSupplier;
         this.bookProvider = bookProvider;
         this.parser = parser;
         this.bookToJsonConverter = bookToJsonConverter;
         this.bookDao = bookDao;
+        this.validator = validator;
 
         PropertyConfigurator.configure(getClass().getClassLoader().getResource(PATH_TO_LOG_PROPERTY_CONFIG_FILE));
     }
@@ -43,21 +49,34 @@ public class BookService {
                 bookProvider.getBookHtml(url).ifPresent(performBookTransformation(url));
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            StringWriter stringWriter = new StringWriter();
+            e.printStackTrace(new PrintWriter(stringWriter));
+            log.error(stringWriter.toString());
         }
     }
 
     private Consumer<String> performBookTransformation(URL url) {
         return html -> {
             Book book = parser.convertHtmlToBook(html);
-            String bookJson = bookToJsonConverter.toJson(book);
-            if (BookValidator.validateJson(bookJson, Book.class)) {
-                bookDao.saveBook(url.toString(), bookJson);
+            Set<ConstraintViolation<Book>> violations = validator.validate(book);
+            if (violations.isEmpty()) {
+                String bookJson = bookToJsonConverter.toJson(book);
+                decideToSaveBook(url.toString(), bookJson);
                 urlsSupplier.changeRetryStatusSuccessCase(url.toString());
             } else {
                 urlsSupplier.changeRetryStatusUnfortunateCase(url.toString());
+                for (ConstraintViolation<Book> violation : violations) {
+                    log.info(violation + " : " + url.toString());
+                }
             }
         };
     }
 
+    private void decideToSaveBook(String urlToBook, String bookJson) {
+        if (bookDao.checkExistBook(urlToBook) == 0) {
+            bookDao.saveBook(urlToBook, bookJson);
+        } else {
+            bookDao.updateExistBook(urlToBook, bookJson);
+        }
+    }
 }

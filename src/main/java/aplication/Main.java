@@ -20,6 +20,9 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import time.task.BookServiceTask;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -64,9 +67,12 @@ public class Main {
         Gson bookToJsonConverter = new Gson();
         BookDao bookDao = new BookDao(dataSource);
         UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
-
         BookProvider bookProvider = new RemoteBookProvider(client, sieve);
-        BookService bookService = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookDao);
+
+        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+        Validator validator = validatorFactory.getValidator();
+
+        BookService bookService = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookDao, validator);
 
         int from = 709_010;
         int to = 709_030;

@@ -29,7 +29,7 @@ public class UrlsSupplier {
         }
     }
 
-    public void changeRetryStatusSuccessCase(String urlToBook) throws BadRequestException {
+    public void     changeRetryStatusSuccessCase(String urlToBook) throws BadRequestException {
         String query = "UPDATE crawler.urls SET `result`=true WHERE `url`=?";
         QueryRunner runner = new QueryRunner(dataSource);
         try {

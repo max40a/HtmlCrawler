@@ -8,17 +8,39 @@ import java.sql.SQLException;
 
 public class BookDao {
 
-    private DataSource dataSource;
+    private QueryRunner queryRunner;
 
     public BookDao(DataSource dataSource) {
-        this.dataSource = dataSource;
+        this.queryRunner = new QueryRunner(dataSource);
     }
 
-    public void saveBook(String urlToBook, String jsonBook) throws BadRequestException {
+    public void saveBook(String urlToBook, String jsonBook) {
         String query = "INSERT INTO crawler.books (url, book) VALUES (?,?)";
-        QueryRunner runner = new QueryRunner(dataSource);
         try {
-            runner.update(query, urlToBook, jsonBook);
+            queryRunner.update(query, urlToBook, jsonBook);
+        } catch (SQLException e) {
+            String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
+            throw new BadRequestException(message, e);
+        }
+    }
+
+    public int checkExistBook(String urlToBook) {
+        String query = "SELECT exists(SELECT url FROM crawler.books WHERE url=?)";
+        try {
+            return queryRunner.query(query, rs -> {
+                rs.next();
+                return rs.getInt(1);
+            }, urlToBook);
+        } catch (SQLException e) {
+            String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
+            throw new BadRequestException(message, e);
+        }
+    }
+
+    public void updateExistBook(String urlToBook, String jsonBook) {
+        String query = "UPDATE crawler.books SET book=? WHERE url=?";
+        try {
+            queryRunner.update(query, jsonBook, urlToBook);
         } catch (SQLException e) {
             String message = String.format("Exception occur in %s, when request occurred : %s", getClass().getName(), query);
             throw new BadRequestException(message, e);

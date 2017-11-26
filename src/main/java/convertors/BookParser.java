@@ -101,7 +101,9 @@ public class BookParser extends AbstractBookParser {
 
     @Override
     protected Optional<String> findPrice(Document document) {
-        return Optional.ofNullable(document.select("div > span.fn-price").first().text());
+        Elements select = document.select("div > span.fn-price");
+        if (select.isEmpty()) return Optional.empty();
+        return Optional.ofNullable(select.first().text());
     }
 
     @Override
