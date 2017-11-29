@@ -10,13 +10,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BookParser extends AbstractBookParser {
 
     private static final int MAX_NUMBER_OF_AUTHORS = 5;
 
-    private final String SELECT_AUTHOR_CSS_QUERY_V1 = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|ІВ)), " +
-            "div#annotation p > b:matchesOwn(^ПРО АВТОР(А|ІВ))";
+    private final String SELECT_AUTHOR_CSS_QUERY_V1 = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|А:|ІВ)), " +
+            "div#annotation p > b:matchesOwn(^ПРО АВТОР(А|А:|ІВ))";
     private final String SELECT_AUTHOR_CSS_QUERY_V2 = "div#features tr.params > td.attr:matchesOwn(^Автор$)";
     private final String SELECT_DESCRIPTION_CSS_QUERY_V1 = "p > strong:matchesOwn(^ПРО КНИЖКУ$)";
     private final String SELECT_DESCRIPTION_CSS_QUERY_V2 = "div.tab-content > div#annotation > p";
@@ -28,19 +29,19 @@ public class BookParser extends AbstractBookParser {
 
     @Override
     protected Optional<List<String>> findAuthors(Document document) {
-        Elements select = document.select(SELECT_AUTHOR_CSS_QUERY_V1);
+        Elements select = document.select(SELECT_AUTHOR_CSS_QUERY_V2);
         if (!select.isEmpty()) {
+            Elements searchElement = select.next();
+            if (searchElement.isEmpty()) return Optional.empty();
+            return Optional.of(Collections.singletonList(searchElement.text()));
+        } else {
+            select = document.select(SELECT_AUTHOR_CSS_QUERY_V1);
+            if (select.isEmpty()) return Optional.empty();
             Elements searchElements = select.parents().next();
             if (searchElements.isEmpty()) return Optional.empty();
             List<String> authors = new ArrayList<>();
             authorSearch(searchElements, authors, 0);
             return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
-        } else {
-            select = document.select(SELECT_AUTHOR_CSS_QUERY_V2);
-            if (select.isEmpty()) return Optional.empty();
-            Elements searchElement = select.next();
-            if (searchElement.isEmpty()) return Optional.empty();
-            return Optional.of(Collections.singletonList(searchElement.text()));
         }
     }
 
@@ -89,9 +90,11 @@ public class BookParser extends AbstractBookParser {
                 .translation(true)
                 .build();
     }
-
+    
     private String formatIsbnNumber(String number) {
-        return String.join("", number.split("-"));
+        return Stream.of(number.split("-"))
+                .map(String::trim)
+                .collect(Collectors.joining(""));
     }
 
     @Override
