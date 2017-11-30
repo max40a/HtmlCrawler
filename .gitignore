@@ -2,3 +2,5 @@
 .idea/
 HtmlCrawler.iml
 target/
+.gitignore
+BridgeCrawlerToCore.iml
