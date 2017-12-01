@@ -12,19 +12,17 @@ public class Main {
 
     private static final String PATH_TO_URL_PROVIDER_DB_PROPERTIES = "db/url.provider.properties";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
         MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
 
-        BookDao d = new BookDao(dataSource);
+        BookDao bookDao = new BookDao(dataSource);
         Client client = new Client();
 
-        String url = "https://nashformat.ua/products/-709015";
-        try {
-            String bookByUrl = d.getBookByUrl(url);
-            client.foo(bookByUrl);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        client.sendBookToCore(bookDao.getBookByUrl(709015));
+
+        for (String book : bookDao.getAllBooks()) {
+            client.sendBookToCore(book);
         }
     }
 

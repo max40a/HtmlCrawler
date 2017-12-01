@@ -21,7 +21,8 @@ public class BookDao {
         return runner.query(query, booksColumnMapper);
     }
 
-    public String getBookByUrl(String url) throws SQLException {
+    public String getBookByUrl(int index) throws SQLException {
+        String url = "https://nashformat.ua/products/-" + index;
         String query = "SELECT book FROM crawler.books WHERE url=?";
         return runner.query(query, rs -> {
             rs.next();
