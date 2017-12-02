@@ -1,6 +1,7 @@
 package entity;
 
 import lombok.Data;
+import validator.NotEmptyFields;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -14,6 +15,7 @@ public class Book {
     private String title;
     @NotNull
     @NotEmpty
+    @NotEmptyFields
     private List<String> authors = new ArrayList<>();
     @NotNull
     private String publishing;
@@ -25,6 +27,7 @@ public class Book {
     private Isbn isbn;
     @NotNull
     @NotEmpty
+    @NotEmptyFields
     private List<String> categories = new ArrayList<>();
     @NotNull
     private String description;
