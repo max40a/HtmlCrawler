@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.not;
@@ -28,7 +29,7 @@ public class BookParserTest extends BookParser {
 
     private String getHtml(String pathToResource) throws IOException {
         URL resource = getClass().getClassLoader().getResource(pathToResource);
-        assert resource != null;
+        Objects.requireNonNull(resource);
         return IOUtils.toString(resource, StandardCharsets.UTF_8.name());
     }
 

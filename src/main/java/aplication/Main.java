@@ -4,13 +4,12 @@ import book.providers.BookProvider;
 import book.providers.LocalBookProvider;
 import book.providers.RemoteBookProvider;
 import com.google.gson.Gson;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import convertors.AbstractBookParser;
 import convertors.BookParser;
+import db.DataBaseUtil;
 import db.book.BookDao;
 import db.book.BookService;
 import db.url.UrlSieve;
-import db.url.UrlsGenerator;
 import db.url.UrlsSupplier;
 import http.client.HttpsClient;
 import org.apache.commons.io.IOUtils;
@@ -20,15 +19,13 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import time.task.BookServiceTask;
 
+import javax.sql.DataSource;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
@@ -41,9 +38,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure(Main.class.getClassLoader().getResource(PATH_TO_LOG_PROPERTY_CONFIG_FILE));
-        Properties dbProperties = loadProperties(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
-        MysqlConnectionPoolDataSource dataSource = initDataSource(dbProperties);
-
+        DataSource dataSource = DataBaseUtil.getDataSource(PATH_TO_URL_PROVIDER_DB_PROPERTIES);
         AbstractBookParser parser = new BookParser();
 
         //*LOCAL PART*/
@@ -63,7 +58,6 @@ public class Main {
        /* REMOTE PART*/
         HttpsClient client = new HttpsClient();
         UrlSieve sieve = new UrlSieve(dataSource);
-        UrlsGenerator urlsGenerator = new UrlsGenerator(dataSource);
         Gson bookToJsonConverter = new Gson();
         BookDao bookDao = new BookDao(dataSource);
         UrlsSupplier urlsSupplier = new UrlsSupplier(dataSource);
@@ -73,10 +67,6 @@ public class Main {
         Validator validator = validatorFactory.getValidator();
 
         BookService bookService = new BookService(urlsSupplier, bookProvider, parser, bookToJsonConverter, bookDao, validator);
-
-        int from = 709_010;
-        int to = 709_030;
-        urlsGenerator.generateUrls(from, to);
 
         SchedulerFactory schedulerFactory = new StdSchedulerFactory();
         Scheduler scheduler = schedulerFactory.getScheduler();
@@ -102,23 +92,5 @@ public class Main {
         scheduler.start();
         TimeUnit.MINUTES.sleep(5);
         scheduler.shutdown(true);
-    }
-
-    private static MysqlConnectionPoolDataSource initDataSource(Properties dbProperties) throws IOException {
-        MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
-        dataSource.setServerName(dbProperties.getProperty("jdbc.url"));
-        dataSource.setDatabaseName(dbProperties.getProperty("jdbc.dbname"));
-        dataSource.setUser(dbProperties.getProperty("jdbc.username"));
-        dataSource.setPassword(dbProperties.getProperty("jdbc.password"));
-        dataSource.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        return dataSource;
-    }
-
-    private static Properties loadProperties(String path) throws IOException {
-        Properties properties = new Properties();
-        try (InputStream in = Main.class.getClassLoader().getResourceAsStream(path)) {
-            properties.load(in);
-        }
-        return properties;
     }
 }
