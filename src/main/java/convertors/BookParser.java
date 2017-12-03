@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 public class BookParser extends AbstractBookParser {
 
     private static final int MAX_NUMBER_OF_AUTHORS = 5;
+    private final String STOP_SEARCH_AUTHORS_CRITERIA_REGEXP = "^[А-ЯЁЇІЄҐ]{2}.*";
 
     private final String SELECT_AUTHOR_CSS_QUERY_V1 = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|А:|ІВ)), " +
             "div#annotation p > b:matchesOwn(^ПРО АВТОР(А|А:|ІВ))";
@@ -39,17 +40,18 @@ public class BookParser extends AbstractBookParser {
             if (select.isEmpty()) return Optional.empty();
             Elements searchElements = select.parents().next();
             if (searchElements.isEmpty()) return Optional.empty();
-            List<String> authors = new ArrayList<>();
-            authorSearch(searchElements, authors, 0);
-            return authors.isEmpty() ? Optional.empty() : Optional.of(authors);
+            return Optional.of(getAuthors(searchElements, 0));
         }
     }
 
-    private void authorSearch(Elements elements, List<String> authors, int depth) {
-        String stopSearchCriteriaRegExp = "^[А-ЯЁЇІЄҐ]{2}.*";
-        if (elements.text().matches(stopSearchCriteriaRegExp) || depth > MAX_NUMBER_OF_AUTHORS) return;
+    private List<String> getAuthors(Elements elements, int depth) {
+        List<String> authors = new ArrayList<>();
+        if (elements.text().matches(STOP_SEARCH_AUTHORS_CRITERIA_REGEXP) || depth > MAX_NUMBER_OF_AUTHORS) {
+            return authors;
+        }
         authors.add(elements.select("p > strong").text());
-        authorSearch(elements.next(), authors, depth + 1);
+        authors.addAll(getAuthors(elements.next(), depth + 1));
+        return authors;
     }
 
     @Override
@@ -90,7 +92,7 @@ public class BookParser extends AbstractBookParser {
                 .translation(true)
                 .build();
     }
-    
+
     private String formatIsbnNumber(String number) {
         return Stream.of(number.split("-"))
                 .map(String::trim)

@@ -28,6 +28,7 @@ public class BookParserTest extends BookParser {
 
     private String getHtml(String pathToResource) throws IOException {
         URL resource = getClass().getClassLoader().getResource(pathToResource);
+        assert resource != null;
         return IOUtils.toString(resource, StandardCharsets.UTF_8.name());
     }
 
@@ -36,12 +37,13 @@ public class BookParserTest extends BookParser {
         String testableHtmlV1 = getHtml("test_files/book_parser_test_files/author_finder_test_file_v_1.html");
         testableHtmlV1 = testableHtmlV1.replace("${first test author}", TEST_DATA);
         testableHtmlV1 = testableHtmlV1.replace("${second test author}", TEST_DATA);
+        testableHtmlV1 = testableHtmlV1.replace("${third test author}", TEST_DATA);
         Document docV1 = Jsoup.parse(testableHtmlV1, StandardCharsets.UTF_8.name());
 
-        List<String> expectedList = Arrays.asList(TEST_DATA, TEST_DATA);
+        List<String> expectedList = Arrays.asList(TEST_DATA, TEST_DATA, TEST_DATA);
         List<String> actualList = this.findAuthors(docV1).orElseThrow(IllegalStateException::new);
-        assertThat(expectedList, is(actualList));
-        assertThat(actualList, hasSize(2));
+        assertThat(actualList, is(expectedList));
+        assertThat(actualList, hasSize(3));
     }
 
     @Test
