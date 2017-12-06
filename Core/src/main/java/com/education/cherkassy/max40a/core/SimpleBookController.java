@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.UnknownHostException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
@@ -20,6 +21,11 @@ public class SimpleBookController {
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
     public int saveBook(@RequestBody String jsonBook) throws UnknownHostException {
-        return repository.saveJsonBook(jsonBook);
+        return this.repository.saveJsonBook(jsonBook);
+    }
+
+    @GetMapping
+    public List<String> getAllBooks() throws UnknownHostException {
+        return this.repository.getAllBooks();
     }
 }
