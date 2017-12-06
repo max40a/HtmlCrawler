@@ -20,7 +20,11 @@ public class BookParser extends AbstractBookParser {
     private final String SELECT_AUTHOR_CSS_QUERY_V1 = "div#annotation p > strong:matchesOwn(^ПРО АВТОР(А|А:|ІВ)), " +
             "div#annotation p > b:matchesOwn(^ПРО АВТОР(А|А:|ІВ))";
     private final String SELECT_AUTHOR_CSS_QUERY_V2 = "div#features tr.params > td.attr:matchesOwn(^Автор$)";
-    private final String SELECT_DESCRIPTION_CSS_QUERY_V1 = "p > strong:matchesOwn(^ПРО КНИЖКУ$)";
+    private final String SELECT_DESCRIPTION_CSS_QUERY_V1 =
+            "p > strong:matchesOwn(^ПРО КНИ(ЖКУ|ГУ)$), " +
+            "p > b:matchesOwn(^ПРО КНИ(ЖКУ|ГУ)$), " +
+            "p > strong:matchesOwn(^Про кни(жку|гу)$), " +
+            "p > b:matchesOwn(^Про кни(жку|гу)$)";
     private final String SELECT_DESCRIPTION_CSS_QUERY_V2 = "div.tab-content > div#annotation > p";
     private final String CSS_QUERY_BY_GET_LANGUAGE = "div#features td.attr:contains(Мова)";
     private final String CSS_QUERY_BY_GET_NUMBER_OF_ISBN = "div#features td.attr:contains(ISBN)";
