@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
@@ -25,7 +26,7 @@ public class SimpleBookController {
     }
 
     @GetMapping
-    public List<String> getAllBooks() throws UnknownHostException {
+    public List<Map<String, Object>> getAllBooks() throws UnknownHostException {
         return this.repository.getAllBooks();
     }
 }
