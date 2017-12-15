@@ -6,7 +6,10 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +18,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Repository
 class BookRepository {
@@ -37,9 +42,65 @@ class BookRepository {
         SearchResponse response = client().prepareSearch(INDEX_NAME)
                 .setTypes(TYPE_NAME)
                 .setFrom(0)
-                .setSize(25)
+                .setSize(5)
                 .get();
 
+        return Arrays.stream(response.getHits().getHits())
+                .map(SearchHit::getSourceAsMap)
+                .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getBooksByCategories(String category) throws UnknownHostException {
+        SearchResponse response = client().prepareSearch(INDEX_NAME)
+                .setTypes(TYPE_NAME)
+                .setQuery(QueryBuilders.matchQuery("categories", category))
+                .setFrom(0)
+                .setSize(5)
+                .get();
+
+        return getListMapsOfResults(response);
+    }
+
+    public List<Map<String, Object>> getBooksByAuthor(String authorName) throws UnknownHostException {
+        SearchResponse response = client().prepareSearch(INDEX_NAME)
+                .setTypes(TYPE_NAME)
+                .setQuery(QueryBuilders.matchQuery("authors", authorName))
+                .setFrom(0)
+                .setSize(5)
+                .get();
+
+        return getListMapsOfResults(response);
+    }
+
+    public Set<String> getAllCategories() throws UnknownHostException {
+        return getBookFieldValues("categories");
+    }
+
+    public Set<String> getAllAuthors() throws UnknownHostException {
+        return getBookFieldValues("authors");
+    }
+
+    private Set<String> getBookFieldValues(String fieldName) throws UnknownHostException {
+        SearchResponse response = client().prepareSearch(INDEX_NAME)
+                .setTypes(TYPE_NAME)
+                .addAggregation(
+                        AggregationBuilders.terms(fieldName).size(10_000).field(fieldName)
+                )
+                .setFrom(0)
+                .setSize(10_000)
+                .execute()
+                .actionGet();
+
+        Terms terms = response.getAggregations().get(fieldName);
+        return terms.getBuckets()
+                .stream()
+                .map(Terms.Bucket::getKeyAsString)
+                .flatMap(str -> Stream.of(str.split(",")))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+    }
+
+    private List<Map<String, Object>> getListMapsOfResults(SearchResponse response) {
         return Arrays.stream(response.getHits().getHits())
                 .map(SearchHit::getSourceAsMap)
                 .collect(Collectors.toList());

@@ -4,7 +4,7 @@
     "book": {
       "properties": {
         "authors":  { "type": "keyword"},
-        "categories": {"type": "text"},
+        "categories": {"type": "keyword"},
         "description": {"type": "text"},
         "isbn": {
           "properties": {
