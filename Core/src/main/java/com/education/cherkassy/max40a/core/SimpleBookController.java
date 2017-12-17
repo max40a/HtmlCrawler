@@ -26,9 +26,9 @@ public class SimpleBookController {
         return this.repository.saveJsonBook(jsonBook);
     }
 
-    @GetMapping
-    public List<Map<String, Object>> getAllBooks() throws UnknownHostException {
-        return this.repository.getAllBooks();
+    @GetMapping(value = "/{page}")
+    public List<Map<String, Object>> getAllBooks(@PathVariable Integer page) throws UnknownHostException {
+        return this.repository.getAllBooks(page);
     }
 
     @GetMapping("/categories")

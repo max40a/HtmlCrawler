@@ -38,11 +38,12 @@ class BookRepository {
         return indexResponse.status().getStatus();
     }
 
-    public List<Map<String, Object>> getAllBooks() throws UnknownHostException {
+    public List<Map<String, Object>> getAllBooks(int page) throws UnknownHostException {
+        int numberOfBooks = 3;
         SearchResponse response = client().prepareSearch(INDEX_NAME)
                 .setTypes(TYPE_NAME)
-                .setFrom(0)
-                .setSize(5)
+                .setFrom(page * numberOfBooks)
+                .setSize(numberOfBooks)
                 .get();
 
         return Arrays.stream(response.getHits().getHits())
