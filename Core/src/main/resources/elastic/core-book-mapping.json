@@ -1,0 +1,25 @@
+/*PUT core*/
+{
+  "mappings": {
+    "book": {
+      "properties": {
+        "authors":  { "type": "keyword"},
+        "categories": {"type": "keyword"},
+        "description": {"type": "text"},
+        "isbn": {
+          "properties": {
+            "language": {"type": "text"},
+            "number": {"type": "text"},
+            "translation": {"type": "boolean"},
+            "type": {"type": "short"}
+          }
+        },
+        "numberOfPages": {"type": "integer"},
+        "price": {"type": "double"},
+        "publishing": {"type": "text"},
+        "title": {"type": "text"},
+        "yearOfPublishing": {"type": "integer"}
+      }
+    }
+  }
+}
