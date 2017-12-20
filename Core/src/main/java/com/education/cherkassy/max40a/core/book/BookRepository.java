@@ -1,5 +1,7 @@
-package com.education.cherkassy.max40a.core;
+package com.education.cherkassy.max40a.core.book;
 
+import com.education.cherkassy.max40a.core.entity.Book;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
@@ -11,13 +13,14 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,6 +34,13 @@ class BookRepository {
     private final String INDEX_NAME = "core";
     private final String TYPE_NAME = "book";
 
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    BookRepository(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     public int saveJsonBook(String jsonBook) throws UnknownHostException {
         IndexResponse indexResponse = client().prepareIndex(INDEX_NAME, TYPE_NAME)
                 .setSource(jsonBook, XContentType.JSON)
@@ -38,7 +48,7 @@ class BookRepository {
         return indexResponse.status().getStatus();
     }
 
-    public List<Map<String, Object>> getAllBooks(int page) throws UnknownHostException {
+    public List<Book> getAllBooks(int page) throws UnknownHostException {
         int numberOfBooks = 3;
         SearchResponse response = client().prepareSearch(INDEX_NAME)
                 .setTypes(TYPE_NAME)
@@ -47,11 +57,12 @@ class BookRepository {
                 .get();
 
         return Arrays.stream(response.getHits().getHits())
-                .map(SearchHit::getSourceAsMap)
+                .map(SearchHit::getSourceAsString)
+                .map(this::jsonToBook)
                 .collect(Collectors.toList());
     }
 
-    public List<Map<String, Object>> getBooksByCategories(String category) throws UnknownHostException {
+    public List<Book> getBooksByCategories(String category) throws UnknownHostException {
         SearchResponse response = client().prepareSearch(INDEX_NAME)
                 .setTypes(TYPE_NAME)
                 .setQuery(QueryBuilders.matchQuery("categories", category))
@@ -59,10 +70,10 @@ class BookRepository {
                 .setSize(5)
                 .get();
 
-        return getListMapsOfResults(response);
+        return getListOfBooks(response);
     }
 
-    public List<Map<String, Object>> getBooksByAuthor(String authorName) throws UnknownHostException {
+    public List<Book> getBooksByAuthor(String authorName) throws UnknownHostException {
         SearchResponse response = client().prepareSearch(INDEX_NAME)
                 .setTypes(TYPE_NAME)
                 .setQuery(QueryBuilders.matchQuery("authors", authorName))
@@ -70,7 +81,7 @@ class BookRepository {
                 .setSize(5)
                 .get();
 
-        return getListMapsOfResults(response);
+        return getListOfBooks(response);
     }
 
     public Set<String> getAllCategories() throws UnknownHostException {
@@ -101,10 +112,20 @@ class BookRepository {
                 .collect(Collectors.toSet());
     }
 
-    private List<Map<String, Object>> getListMapsOfResults(SearchResponse response) {
+    private List<Book> getListOfBooks(SearchResponse response) {
         return Arrays.stream(response.getHits().getHits())
-                .map(SearchHit::getSourceAsMap)
+                .map(SearchHit::getSourceAsString)
+                .map(this::jsonToBook)
                 .collect(Collectors.toList());
+    }
+
+    private Book jsonToBook(String jsonBook) {
+        try {
+            return objectMapper.readValue(jsonBook, Book.class);
+        } catch (IOException e) {
+            String message = "An error occurred while converting the book from json";
+            throw new BookConversionException(message, e);
+        }
     }
 
     private Client client() throws UnknownHostException {

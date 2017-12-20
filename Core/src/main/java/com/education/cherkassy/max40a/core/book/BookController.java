@@ -1,22 +1,22 @@
-package com.education.cherkassy.max40a.core;
+package com.education.cherkassy.max40a.core.book;
 
+import com.education.cherkassy.max40a.core.entity.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @RestController
 @RequestMapping("/api/books")
-public class SimpleBookController {
+public class BookController {
 
     private BookRepository repository;
 
     @Autowired
-    public SimpleBookController(BookRepository repository) {
+    public BookController(BookRepository repository) {
         this.repository = repository;
     }
 
@@ -26,8 +26,9 @@ public class SimpleBookController {
         return this.repository.saveJsonBook(jsonBook);
     }
 
-    @GetMapping(value = "/{page}")
-    public List<Map<String, Object>> getAllBooks(@PathVariable Integer page) throws UnknownHostException {
+    @GetMapping()
+    public List<Book> getAllBooks(@RequestParam Integer page) throws UnknownHostException {
+        System.out.println("page = " + page);
         return this.repository.getAllBooks(page);
     }
 
@@ -37,12 +38,12 @@ public class SimpleBookController {
     }
 
     @GetMapping("/search/category")
-    public List<Map<String, Object>> getBooksByCategory(@RequestParam String category) throws UnknownHostException {
+    public List<Book> getBooksByCategory(@RequestParam String category) throws UnknownHostException {
         return this.repository.getBooksByCategories(category);
     }
 
     @GetMapping("/search/author")
-    public List<Map<String, Object>> getBooksByAuthor(@RequestParam String author) throws UnknownHostException {
+    public List<Book> getBooksByAuthor(@RequestParam String author) throws UnknownHostException {
         return this.repository.getBooksByAuthor(author);
     }
 
